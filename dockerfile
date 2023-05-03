@@ -1,51 +1,30 @@
-# Use an official PHP runtime as a parent image
-FROM php:8.1-fpm-alpine
+FROM php:8.1.0-apache
+WORKDIR /var/www/html
 
-# Set the working directory to /app
-WORKDIR /app
+# Mod Rewrite
+RUN a2enmod rewrite
 
-# Copy composer.json and composer.lock into the container
-COPY composer.json composer.lock /app/
+# Linux Library
+RUN apt-get update -y && apt-get install -y \
+    libicu-dev \
+    libmariadb-dev \
+    unzip zip \
+    zlib1g-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libpng-dev \
+    libzip-dev \
+    && docker-php-ext-install zip
 
-RUN apk add --update --no-cache linux-headers
-RUN apk add --no-cache icu-dev
-RUN apk add --no-cache libzip-dev
+# Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Install dependencies
-RUN apk add --no-cache --virtual .build-deps \
-        $PHPIZE_DEPS \
-        curl \
-        git \
-        icu-dev \
-        libzip-dev \
-        && pecl install xdebug \
-        && docker-php-ext-enable xdebug \
-        && docker-php-ext-install intl pdo_mysql zip \
-        && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
-        && composer install --no-scripts --no-autoloader \
-        && apk del .build-deps \
-        && rm -rf /tmp/* /var/cache/apk/* /root/.composer
+# PHP Extension
+RUN docker-php-ext-install gettext intl pdo_mysql gd
 
-# Copy the rest of the application code into the container
-COPY . /app
+RUN docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) gd
 
-# Generate the autoload files
-RUN composer dump-autoload --optimize
-
-# Copy the .env file into the container
-COPY .env /app/.env
-
-# Set up the environment
-ENV APP_ENV=local
-ENV APP_DEBUG=true
-ENV APP_URL=http://localhost
-ENV DB_CONNECTION=mysql
-ENV DB_HOST=database
-ENV DB_PORT=3306
-ENV DB_DATABASE=laravel
-ENV DB_USERNAME=root
-ENV DB_PASSWORD=
-
-# Expose port 9000 and start the PHP-FPM process
-EXPOSE 9000
-CMD ["php-fpm"]
+RUN chmod o+w ./storage/ -R
