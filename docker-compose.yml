@@ -4,20 +4,55 @@ services:
     build: .
     volumes:
       - ./laravel-app:/var/www/html
-    ports:
-      - 9000:80
+    # ports:
+    #   - 9000:80
+    networks:
+      # define your network where all containers are connected to each other
+      - invoice-be
 
-  mysql_db:
+  db:
     image: mysql:latest
+    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: taravel_docker
+      MYSQL_USER: tu
+      MYSQL_DATABASE: invoice-builder
+      MYSQL_PASSWORD: 123456
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
     ports:
       - 3306:3306
+    networks:
+      # define your network where all containers are connected to each other
+      - invoice-be
 
   phpmyadmin:
     image: phpmyadmin:latest
+    restart: always
     ports:
       - 9001:80
     environment:
-      - PMA_ARBITRARY=1
+      - PMA_ARBITRARY:1
+      - PMA_HOST:db
+      - PMA_USER:tu
+      - PMA_PASSWORD:123456
+    depends_on:
+      - db
+    networks:
+      # define your network where all containers are connected to each other
+      - invoice-be
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    ports:
+      - '8080:80'
+    volumes:
+      - ./laravel-app:/var/www
+      - ./nginx/conf.d/:/etc/nginx/conf.d/
+    depends_on:
+      - laravel-docker
+      - db
+    networks:
+      # define your network where all containers are connected to each other
+      - invoice-be
+networks:
+  invoice-be:
+    driver: bridge

@@ -9,4 +9,5 @@ class ApiCode {
     public const EMAIL_ALREADY_VERIFIED = 253;
     public const INVALID_EMAIL_VERIFICATION_URL = 254;
     public const INVALID_RESET_PASSWORD_TOKEN = 255;
+    public const INVALID_TOKEN=401;
 }

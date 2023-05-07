@@ -99,6 +99,14 @@ return [
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
         ],
+        'console' => [
+            'driver' => 'monolog',
+            'handler' => StreamHandler::class,
+            'formatter' => env('LOG_CONSOLE_FORMATTER', LineFormatter::class),
+            'with' => [
+                'stream' => 'php://stdout',
+            ],
+        ],
     ],
 
 ];
