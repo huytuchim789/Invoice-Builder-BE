@@ -6,6 +6,7 @@
     use App\Http\Controllers\VerificationController;
     use App\Http\Controllers\ForgotPasswordController;
     use App\Http\Controllers\GoogleAuthController;
+    use App\Http\Controllers\GoogleController;
     use App\Http\Controllers\UserController;
 
     Route::group(['prefix' => 'auth'], function () {
@@ -23,5 +24,7 @@
         Route::patch('user/profile', [UserController::class, 'updateProfile']);
         //login
         Route::post('google_login', [GoogleAuthController::class, 'login']);
+        Route::get('google/url', [GoogleController::class, 'loginUrl']);
+        Route::get('google/callback', [GoogleController::class, 'loginCallback']);
         // add more routes here
     });

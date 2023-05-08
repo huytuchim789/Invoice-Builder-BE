@@ -3,7 +3,9 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GoogleAuthController;
+use Illuminate\Support\Facades\Response;
 
+use function GuzzleHttp\Promise\all;
 
 /*
 |--------------------------------------------------------------------------
