@@ -12,17 +12,19 @@ class AuthController extends Controller
         $this->middleware('auth:api', ['except' => ['login']]);
     }
 
-    public function login() {
+    public function login()
+    {
         $credentials = request()->validate(['email' => 'required|email', 'password' => 'required|string|max:25']);
 
-        if (! $token = auth()->attempt($credentials)) {
-            return $this->respondUnAuthorizedRequest(ApiCode::INVALID_CREDENTIALS,trans('api.something_went_wrong'));
+        if (!$token = auth()->attempt($credentials)) {
+            return $this->respondUnAuthorizedRequest(ApiCode::INVALID_CREDENTIALS, trans('api.something_went_wrong'));
         }
 
         return $this->respondWithToken($token);
     }
 
-    private function respondWithToken($token) {
+    private function respondWithToken($token)
+    {
         return $this->respond([
             'token' => $token,
             'access_type' => 'bearer',
@@ -31,17 +33,25 @@ class AuthController extends Controller
     }
 
 
-    public function logout() {
+    public function logout()
+    {
         auth()->logout();
         return $this->respondWithMessage('User successfully logged out');
     }
 
 
-    public function refresh() {
+    public function refresh()
+    {
         return $this->respondWithToken(auth()->refresh());
     }
 
-    public function me() {
-        return $this->respond(auth()->user());
+    public function me()
+    {
+        try {
+            $user = auth()->user();
+            return $this->respond($user);
+        } catch (\Exception $ex) {
+            return $this->respondUnAuthorizedRequest(ApiCode::INVALID_TOKEN, trans('auth.invalid_token'));
+        }
     }
 }

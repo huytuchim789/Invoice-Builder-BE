@@ -4,8 +4,8 @@ services:
     build: .
     volumes:
       - ./laravel-app:/var/www/html
-    # ports:
-    #   - 9000:80
+    ports:
+      - 9000:80
     networks:
       # define your network where all containers are connected to each other
       - invoice-be
