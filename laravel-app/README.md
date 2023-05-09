@@ -1,59 +1,11 @@
-# Laravel-Starter (for Laravel 9)
-# Laravel-Starter (for Laravel 8, [click here](https://github.com/csinghdev/laravel-starter/tree/v2.0))
-# Laravel-Starter (for Laravel 7, [click here](https://github.com/csinghdev/laravel-starter/tree/v1.0))
-This Starter Application acts as starting point for application 
-development. A lot of things which needs to be taken care of during REST API Development are already present here.
+<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-Following are the list of things taken care of:
-- JWT pre-installed
-- Authentication APIs are ready to use
-- Consistent Response in all APIs and Exception Handling
-- Registration API
-- Email Verification APIs
-- Forgot Password APIs
-- API Logging
-- Backup automation and management
-- Laravel Telescope for debugging in local environment
-- TDD (Test Driven Development) setup using phpunit
-
-## Want to do it yourself?
-Here are the video tutorials you can follow to do it by yourself. These tutorials are based on Laravel 7 and this project has been upgraded to Laravel 8, you may see few changes in latest code. Checkout [v1.0](https://github.com/csinghdev/laravel-starter/tree/v1.0) to see the exact code.
-
-| | | |
-|:-------------------------:|:-------------------------:|:-------------------------:|
-|<a href="https://www.youtube.com/watch?v=MB2Dv1hqwJE"><img src="https://img.youtube.com/vi/MB2Dv1hqwJE/0.jpg"></a> Create a new Laravel Project|<a href="https://www.youtube.com/watch?v=40g0vEXOFrU"><img src="https://img.youtube.com/vi/40g0vEXOFrU/0.jpg"></a> JWT installation and Setup|<a href="https://www.youtube.com/watch?v=CKqRX9CBljU"><img src="https://img.youtube.com/vi/CKqRX9CBljU/0.jpg"></a> Auth APIs using JWT|
-|<a href="https://www.youtube.com/watch?v=qNhD7DhSGzQ"><img src="https://img.youtube.com/vi/qNhD7DhSGzQ/0.jpg"></a> Consistent Response in REST APIs - Part I|<a href="https://www.youtube.com/watch?v=4BT4NtpZDLU"><img src="https://img.youtube.com/vi/4BT4NtpZDLU/0.jpg"></a> Consistent Response in REST APIs - Part II|<a alt="Consistent Response in REST APIs - Part II (Exception Handling)" href="https://www.youtube.com/watch?v=LChQQtdfSdY"><img src="https://img.youtube.com/vi/LChQQtdfSdY/0.jpg"></a> Registration API|
-|<a href="https://www.youtube.com/watch?v=xIdFl155YvA"><img src="https://img.youtube.com/vi/xIdFl155YvA/0.jpg"></a> Email Verification APIs|<a href="https://www.youtube.com/watch?v=0FCkS-gqA_c"><img src="https://img.youtube.com/vi/0FCkS-gqA_c/0.jpg"></a> Forgot Password APIs|<a href="https://www.youtube.com/watch?v=zIHDOjz1SR4"><img src="https://img.youtube.com/vi/zIHDOjz1SR4/0.jpg"></a> API Logging Using middleware|
-|<a href="https://www.youtube.com/watch?v=11ECvHYMfRY"><img src="https://img.youtube.com/vi/11ECvHYMfRY/0.jpg"></a> Backup automation and management|<a href="https://www.youtube.com/watch?v=gpfEaKr3y9Q"><img alt="Laravel Telescope for debugging in local environment" src="https://img.youtube.com/vi/gpfEaKr3y9Q/0.jpg"></a> Laravel Telescope for debugging|<a href="https://www.youtube.com/watch?v=G-OV9Eqsouk"><img src="https://img.youtube.com/vi/G-OV9Eqsouk/0.jpg"></a> TDD in Laravel using phpunit|
-
-
-## Doing it on MacOS?
-Here is a simple video to setup Laravel application environment on MacOS using [Valet](https://laravel.com/docs/7.x/valet#introduction).
-
-[![Install Valet on Mac](https://img.youtube.com/vi/qN-QmeMm1vE/0.jpg)](https://www.youtube.com/watch?v=qN-QmeMm1vE)
-
-
-How to use?
---
-
-Clone this repository:
-
-    git clone https://github.com/csinghdev/laravel-starter.git
-
-Remove .git folder since you want to create a new repository
-
-    rm -rf .git
-
-Install dependencies:
-
-    composer install
-    
-Copy ``.env.example`` file:
-
-    cp .env.example .env
-
-Configure ``.env`` file
-
+<p align="center">
+<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+</p>
 
 ## About Laravel
 
@@ -73,11 +25,15 @@ Laravel is accessible, powerful, and provides tools required for large, robust a
 
 Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+
+If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
 ## Laravel Sponsors
 
 We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+
+### Premium Partners
 
 - **[Vehikl](https://vehikl.com/)**
 - **[Tighten Co.](https://tighten.co)**
@@ -85,30 +41,13 @@ We would like to extend our thanks to the following sponsors for funding Laravel
 - **[64 Robots](https://64robots.com)**
 - **[Cubet Techno Labs](https://cubettech.com)**
 - **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[British Software Development](https://www.britishsoftware.co)**
+- **[Many](https://www.many.co.uk)**
 - **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
 - **[DevSquad](https://devsquad.com)**
-- [UserInsights](https://userinsights.com)
-- [Fragrantica](https://www.fragrantica.com)
-- [SOFTonSOFA](https://softonsofa.com/)
-- [User10](https://user10.com)
-- [Soumettre.fr](https://soumettre.fr/)
-- [CodeBrisk](https://codebrisk.com)
-- [1Forge](https://1forge.com)
-- [TECPRESSO](https://tecpresso.co.jp/)
-- [Runtime Converter](http://runtimeconverter.com/)
-- [WebL'Agence](https://weblagence.com/)
-- [Invoice Ninja](https://www.invoiceninja.com)
-- [iMi digital](https://www.imi-digital.de/)
-- [Earthlink](https://www.earthlink.ro/)
-- [Steadfast Collective](https://steadfastcollective.com/)
-- [We Are The Robots Inc.](https://watr.mx/)
-- [Understand.io](https://www.understand.io/)
-- [Abdel Elrafa](https://abdelelrafa.com)
-- [Hyper Host](https://hyper.host)
-- [Appoly](https://www.appoly.co.uk)
-- [OP.GG](https://op.gg)
-- [云软科技](http://www.yunruan.ltd/)
+- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
+- **[OP.GG](https://op.gg)**
+- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
+- **[Lendio](https://lendio.com)**
 
 ## Contributing
 

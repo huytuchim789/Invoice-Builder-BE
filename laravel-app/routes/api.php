@@ -2,10 +2,6 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\GoogleAuthController;
-use Illuminate\Support\Facades\Response;
-
-use function GuzzleHttp\Promise\all;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,14 +14,10 @@ use function GuzzleHttp\Promise\all;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::middleware(['api'])->group(function ($router) {
-
-    Route::name('auth')->group(base_path('routes/auth/auth.php'));
-});
 Route::get('/healthz', function () {
-    return response()->json(['status' => 'OKLA']);;
+    return response()->json(["a" => "a"], 401);
 });
