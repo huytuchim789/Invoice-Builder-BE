@@ -3,7 +3,7 @@ setup:
 	@make docker-up 
 	@make composer-update
 	@make key-gen
-	@make run
+	# @make run
 	@make log_permissions
 build:
 	docker-compose build --no-cache --force-rm
