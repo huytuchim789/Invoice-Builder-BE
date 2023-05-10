@@ -1,8 +1,8 @@
 <?php
 
+use App\Http\Controllers\Auth\GoogleAuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -14,16 +14,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
-Route::get('/healthz', function () {
-    return response()->json(["a" => "a"], 401);
-});
 Route::group([
-    'middleware' => 'api',
+    'prefix' => 'auth'
 ], function ($router) {
-    Route::name('auth')->group(base_path('routes/auth/auth.php'));
-    Route::name('google_auth')->group(base_path('routes/auth/googleAuth.php'));
+    Route::get('google/url', [GoogleAuthController::class, 'loginUrl']);
+    Route::get('google/callback', [GoogleAuthController::class, 'loginCallback']);
 });

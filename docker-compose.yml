@@ -45,7 +45,7 @@ services:
     ports:
       - '8080:80'
     volumes:
-      - ./laravel-app:/var/www
+      - ./laravel-app:/var/www/
       - ./nginx/conf.d/:/etc/nginx/conf.d/
     depends_on:
       - laravel-docker
