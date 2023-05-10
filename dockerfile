@@ -4,6 +4,8 @@ WORKDIR /var/www/html
 # Mod Rewrite
 RUN a2enmod rewrite
 
+COPY laravel-app/.env /var/www/html/
+
 # Linux Library
 RUN apt-get update -y && apt-get install -y \
     libicu-dev \

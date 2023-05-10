@@ -129,12 +129,9 @@ return [
     |
     | Specify the hashing algorithm that will be used to sign the token.
     |
-    | See here: https://github.com/namshi/jose/tree/master/src/Namshi/JOSE/Signer/OpenSSL
-    | for possible values.
-    |
     */
 
-    'algo' => env('JWT_ALGO', 'HS256'),
+    'algo' => env('JWT_ALGO', Tymon\JWTAuth\Providers\JWT\Provider::ALGO_HS256),
 
     /*
     |--------------------------------------------------------------------------
@@ -181,7 +178,7 @@ return [
     |
     | This will determine whether a `prv` claim is automatically added to
     | the token. The purpose of this is to ensure that if you have multiple
-    | authentication models e.g. `App\Models\User` & `App\OtherPerson`, then we
+    | authentication models e.g. `App\User` & `App\OtherPerson`, then we
     | should prevent one authentication request from impersonating another,
     | if 2 tokens happen to have the same id across the 2 different models.
     |

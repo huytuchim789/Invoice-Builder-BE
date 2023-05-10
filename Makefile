@@ -23,4 +23,10 @@ key-gen:
 	docker exec laravel-docker bash -c "php artisan key:generate"
 log_permissions:
 	docker exec laravel-docker bash -c "chmod o+w ./storage/ -R"
-	
+migrate_all:
+	docker exec laravel-docker bash -c "php artisan migrate"
+cache:
+	docker exec laravel-docker bash -c "php artisan config:clear"
+	docker exec laravel-docker bash -c "php artisan cache:clear"
+jwt-gen:
+	docker exec laravel-docker bash -c "php artisan jwt:secret"
