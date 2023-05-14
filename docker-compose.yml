@@ -2,14 +2,16 @@ services:
   laravel-docker:
     container_name: laravel-docker
     build: .
+    # command: php artisan serve --host=0.0.0.0 --port=9000
     volumes:
       - ./laravel-app:/var/www/html
-    ports:
-      - 9000:80
+    # ports:
+    #   - 9000:9000
     networks:
       # define your network where all containers are connected to each other
       - invoice-be
-
+    stdin_open: true
+    tty: true
   db:
     image: mysql:latest
     restart: always
@@ -43,7 +45,7 @@ services:
     image: nginx:alpine
     container_name: nginx
     ports:
-      - '8080:80'
+      - 8080:9000
     volumes:
       - ./laravel-app:/var/www/
       - ./nginx/conf.d/:/etc/nginx/conf.d/

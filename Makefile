@@ -1,3 +1,5 @@
+IMAGE_NAME=invoice-builder-be_laravel-docker
+CONTAINER_NAME=laravel-docker
 setup:
 	@make build
 	@make docker-up 
@@ -5,6 +7,7 @@ setup:
 	@make key-gen
 	# @make run
 	@make log_permissions
+
 build:
 	docker-compose build --no-cache --force-rm
 docker-down:
@@ -12,21 +15,21 @@ docker-down:
 docker-up:
 	docker-compose up -d
 composer-update:
-	docker exec laravel-docker bash -c "composer update"
+	docker exec ${CONTAINER_NAME} bash -c "composer update"
 data:
-	docker exec laravel-docker bash -c "php artisan migrate"
-	docker exec laravel-docker bash -c "php artisan db:seed"
+	docker exec ${CONTAINER_NAME} bash -c "php artisan migrate"
+	docker exec ${CONTAINER_NAME} bash -c "php artisan db:seed"
 run:
-	docker exec laravel-docker bash -c "php artisan serve --port=9000"
+	docker exec ${CONTAINER_NAME} bash -c "php artisan serve --host=0.0.0.0 --port=9000"
 key-gen:
-	docker exec laravel-docker bash -c "cp .env.example .env"
-	docker exec laravel-docker bash -c "php artisan key:generate"
+	docker exec ${CONTAINER_NAME} bash -c "cp .env.example .env"
+	docker exec ${CONTAINER_NAME} bash -c "php artisan key:generate"
 log_permissions:
-	docker exec laravel-docker bash -c "chmod o+w ./storage/ -R"
+	docker exec ${CONTAINER_NAME} bash -c "chmod o+w ./storage/ -R"
 migrate_all:
-	docker exec laravel-docker bash -c "php artisan migrate"
+	docker exec ${CONTAINER_NAME} bash -c "php artisan migrate"
 cache:
-	docker exec laravel-docker bash -c "php artisan config:clear"
-	docker exec laravel-docker bash -c "php artisan cache:clear"
+	docker exec ${CONTAINER_NAME} bash -c "php artisan config:clear"
+	docker exec ${CONTAINER_NAME} bash -c "php artisan cache:clear"
 jwt-gen:
-	docker exec laravel-docker bash -c "php artisan jwt:secret"
+	docker exec ${CONTAINER_NAME} bash -c "php artisan jwt:secret"
