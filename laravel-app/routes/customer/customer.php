@@ -14,8 +14,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::group([
-    'prefix' => 'customers'
-], function ($router) {
-    Route::resource('/', CustomerController::class);
-});
+// Route::group([
+//     'prefix' => '/'
+// ], function ($router) {
+// });
+Route::resource('/customers', CustomerController::class);

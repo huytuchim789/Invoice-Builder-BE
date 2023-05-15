@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Propaganistas\LaravelPhone\Casts\RawPhoneNumberCast;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Propaganistas\LaravelPhone\Casts\RawPhoneNumberCast;
 
 class Customer extends Model
 {
@@ -19,7 +19,7 @@ class Customer extends Model
         'contact_number_country',
 
     ];
-    public $casts = [
+    protected $casts = [
         'contact_number' => RawPhoneNumberCast::class . ':contact_number_country',
     ];
 }

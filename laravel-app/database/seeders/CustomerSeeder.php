@@ -25,7 +25,7 @@ class CustomerSeeder extends Seeder
                 'email' => $faker->email,
                 'country' => $faker->country,
                 'address' => $faker->address,
-                'contact_number' => $faker->phoneNumber,
+                'contact_number' => "0382038678",
                 'contact_number_country' => "VN",
             ]);
         }

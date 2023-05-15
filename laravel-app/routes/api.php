@@ -24,7 +24,7 @@ Route::get('/healthz', function () {
 Route::group([
     'middleware' => 'api',
 ], function ($router) {
+    Route::name('customers')->group(base_path('routes/customer/customer.php'));
     Route::name('auth')->group(base_path('routes/auth/auth.php'));
     Route::name('google_auth')->group(base_path('routes/auth/googleAuth.php'));
-    Route::name('customers')->group(base_path('routes/customer/customer.php'));
 });
