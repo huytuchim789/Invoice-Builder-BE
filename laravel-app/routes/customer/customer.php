@@ -1,8 +1,8 @@
 <?php
 
+use App\Http\Controllers\CustomerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -14,17 +14,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
-Route::get('/healthz', function () {
-    return response()->json(["a" => "a"], 401);
-});
 Route::group([
-    'middleware' => 'api',
+    'prefix' => 'customers'
 ], function ($router) {
-    Route::name('auth')->group(base_path('routes/auth/auth.php'));
-    Route::name('google_auth')->group(base_path('routes/auth/googleAuth.php'));
-    Route::name('customers')->group(base_path('routes/customer/customer.php'));
+    Route::resource('/', CustomerController::class);
 });
