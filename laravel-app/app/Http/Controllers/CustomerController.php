@@ -6,13 +6,18 @@ use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
 use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\Response;
 
 class CustomerController extends Controller
 {
     public function index()
     {
-        $customers = Customer::all();
-        return response()->json(['message' => 'List customer rendered successfully', 'data' => $customers]);
+        try {
+            $customers = Customer::all();
+            return Response::customJson(200, $customers, trans('customer.list_success'));
+        } catch (\Exception $e) {
+            return Response::customJson(500, null, $e->getMessage());
+        }
     }
 
     /**
@@ -34,9 +39,9 @@ class CustomerController extends Controller
     {
         try {
             $customer = Customer::create($request->validated());
-            return response()->json(['message' => 'Customer created successfully']);
+            return Response::customJson(200, $customer, trans('customer.create_success'));
         } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 500);
+            return Response::customJson(500, null, $e->getMessage());
         }
     }
 
@@ -69,9 +74,18 @@ class CustomerController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdateCustomerRequest $request, $id)
     {
-        //
+        try {
+            // Find the customer by ID
+            $customer = Customer::findOrFail($id);
+            // Update the customer
+            $customer->update($request->validated());
+
+            return Response::customJson(200, $customer, trans('customer.update_success'));
+        } catch (\Exception $e) {
+            return Response::customJson(500, null, $e->getMessage());
+        }
     }
 
     /**
@@ -82,6 +96,16 @@ class CustomerController extends Controller
      */
     public function destroy($id)
     {
-        //
+        try {
+            // Find the customer by ID
+            $customer = Customer::findOrFail($id);
+
+            // Delete the customer
+            $customer->delete();
+
+            return Response::customJson(200, null, trans('customer.delete_success'));
+        } catch (\Exception $e) {
+            return Response::customJson(500, null, $e->getMessage());
+        }
     }
 }

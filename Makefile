@@ -33,3 +33,6 @@ cache:
 	docker exec ${CONTAINER_NAME} bash -c "php artisan cache:clear"
 jwt-gen:
 	docker exec ${CONTAINER_NAME} bash -c "php artisan jwt:secret"
+
+gen-swagger:
+	docker exec ${CONTAINER_NAME} bash -c "	php artisan laravel-swagger:generate > public/documentation/swagger.json"

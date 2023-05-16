@@ -1,4 +1,6 @@
 FROM php:8.1.0-cli
+
+
 WORKDIR /var/www/html
 
 # Mod Rewrite
@@ -19,7 +21,10 @@ RUN apt-get update -y && apt-get install -y \
     libpng-dev \
     libzip-dev \
     && docker-php-ext-install zip
-
+    
+# Install Node.js
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
+RUN apt-get install -y nodejs
 # Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
