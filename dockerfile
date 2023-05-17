@@ -1,14 +1,11 @@
-FROM php:8.1.0-cli
-
+FROM php:8.1.0-fpm
 
 WORKDIR /var/www/html
 
-# Mod Rewrite
-# RUN a2enmod rewrite
+# Copy composer.lock and composer.json
+COPY laravel-app/composer.lock laravel-app/composer.json /var/www/html/
 
-COPY laravel-app/.env /var/www/html/
-
-# Linux Library
+# Install dependencies
 RUN apt-get update -y && apt-get install -y \
     libicu-dev \
     libmariadb-dev \
@@ -20,19 +17,35 @@ RUN apt-get update -y && apt-get install -y \
     libjpeg62-turbo-dev \
     libpng-dev \
     libzip-dev \
-    && docker-php-ext-install zip
-    
-# Install Node.js
-RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
-RUN apt-get install -y nodejs
-# Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# PHP Extension
-RUN docker-php-ext-install gettext intl pdo_mysql gd
+    && docker-php-ext-install zip \
+    && docker-php-ext-install gettext intl pdo_mysql gd
 
 RUN docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd
 
+# Install Node.js
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
+RUN apt-get install -y nodejs
 
-# RUN chmod o+w ./storage/ -R
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Copy the application code
+COPY laravel-app /var/www/html
+
+# Set permissions for Laravel directories
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Install dependencies
+
+# # Generate the Laravel application key
+# RUN php artisan key:generate
+
+# # Clear the Laravel config cache
+# RUN php artisan config:cache
+
+# # Clear the route cache
+# RUN php artisan route:cache
+
+# # Clear the view cache
+# RUN php artisan view:cache

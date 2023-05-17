@@ -19,7 +19,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::get('/healthz', function () {
-    return response()->json(["a" => "a"], 401);
+    return response()->json(["a" => "a"], 200);
 });
 Route::group([
     'middleware' => 'api',
