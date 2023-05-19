@@ -54,6 +54,7 @@ class InvoiceController extends Controller
             $invoice->note = $validatedData['note'];
             $invoice->tax = $validatedData['tax'];
             $invoice->sale_person = $validatedData['sale_person'];
+            $invoice->customer_id = $validatedData['customer_id'];
             $invoice->save();
 
             // Prepare item data for mass insertion

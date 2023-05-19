@@ -21,6 +21,7 @@ return new class extends Migration
             $table->text('note');
             $table->float('tax')->default(20);
             $table->string('sale_person');
+            $table->uuid('customer_id')->nullable();
             $table->timestamps();
         });
     }

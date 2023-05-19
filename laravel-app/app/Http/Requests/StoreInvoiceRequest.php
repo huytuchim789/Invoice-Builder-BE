@@ -34,7 +34,7 @@ class StoreInvoiceRequest extends FormRequest
             'items.*.cost' => ['required', 'numeric'],
             'items.*.hours' => ['required', 'numeric'],
             'items.*.price' => ['required', 'numeric'],
-            // 'invoice_id' => ['required', 'exists:invoices,id'],
+            'customer_id' => ['exists:customers,id']
         ];
     }
 }

@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('social_accounts', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->unsignedBigInteger('user_id');
+            $table->uuid('user_id');
             $table->string('social_id');
             $table->string('social_provider');
             $table->string('social_name');
