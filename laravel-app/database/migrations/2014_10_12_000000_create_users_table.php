@@ -14,7 +14,7 @@ class CreateUsersTable extends Migration
     public function up()
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->uuid('id')->primary();
             $table->string('name');
             $table->string('email')->nullable()->unique();
             $table->string('avatar_url')->default('https://cdn-icons-png.flaticon.com/512/552/552721.png');

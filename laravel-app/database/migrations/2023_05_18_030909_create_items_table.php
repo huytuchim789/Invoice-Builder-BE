@@ -13,12 +13,13 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('social_accounts', function (Blueprint $table) {
+        Schema::create('items', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->unsignedBigInteger('user_id');
-            $table->string('social_id');
-            $table->string('social_provider');
-            $table->string('social_name');
+            $table->string('name');
+            $table->integer('cost');
+            $table->float('hours');
+            $table->float('price');
+            $table->uuid('invoice_id');
             $table->timestamps();
         });
     }
@@ -30,6 +31,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('social_accounts');
+        Schema::dropIfExists('items');
     }
 };

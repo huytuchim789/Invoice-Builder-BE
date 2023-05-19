@@ -13,7 +13,7 @@ class StoreInvoiceRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,7 +24,17 @@ class StoreInvoiceRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'issued_date' => ['required', 'date'],
+            'created_date' => ['required', 'date'],
+            'note' => ['required', 'string'],
+            'tax' => ['required', 'numeric'],
+            'sale_person' => ['required', 'string'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.name' => ['required', 'string'],
+            'items.*.cost' => ['required', 'numeric'],
+            'items.*.hours' => ['required', 'numeric'],
+            'items.*.price' => ['required', 'numeric'],
+            // 'invoice_id' => ['required', 'exists:invoices,id'],
         ];
     }
 }
