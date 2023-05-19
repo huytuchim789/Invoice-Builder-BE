@@ -55,6 +55,7 @@ class InvoiceController extends Controller
             $invoice->tax = $validatedData['tax'];
             $invoice->sale_person = $validatedData['sale_person'];
             $invoice->customer_id = $validatedData['customer_id'];
+            $invoice->total = $validatedData['total'];
             $invoice->save();
 
             // Prepare item data for mass insertion
@@ -63,6 +64,7 @@ class InvoiceController extends Controller
                 $itemsData[] = [
                     'id' => Str::uuid()->toString(),
                     'name' => $itemData['name'],
+                    'description' => $itemData['description'],
                     'cost' => $itemData['cost'],
                     'hours' => $itemData['hours'],
                     'price' => $itemData['price'],

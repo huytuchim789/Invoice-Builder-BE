@@ -31,10 +31,12 @@ class StoreInvoiceRequest extends FormRequest
             'sale_person' => ['required', 'string'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.name' => ['required', 'string'],
+            'items.*.description' => ['string'],
             'items.*.cost' => ['required', 'numeric'],
             'items.*.hours' => ['required', 'numeric'],
             'items.*.price' => ['required', 'numeric'],
-            'customer_id' => ['exists:customers,id']
+            'customer_id' => ['exists:customers,id'],
+            'total' => ['numeric']
         ];
     }
 }
