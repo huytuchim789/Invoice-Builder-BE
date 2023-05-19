@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreInvoiceRequest;
 use App\Http\Requests\UpdateInvoiceRequest;
+use App\Jobs\SendMailJob;
 use App\Models\Invoice;
 use App\Models\Item;
+use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
 
@@ -131,5 +133,10 @@ class InvoiceController extends Controller
     public function destroy(Invoice $invoice)
     {
         //
+    }
+    public function sendEmail(Request $request)
+    {
+        dispatch(new SendMailJob($request));
+        dd("Successfully sent email to");
     }
 }
