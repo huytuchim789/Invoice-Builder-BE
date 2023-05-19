@@ -19,7 +19,7 @@ class InvoiceController extends Controller
     public function index()
     {
         try {
-            $invoices = Invoice::with('items')->paginate(15);
+            $invoices = Invoice::with(['items', 'customer'])->paginate(15);
             return  Response::customJson(200, $invoices, "success");
         } catch (\Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
