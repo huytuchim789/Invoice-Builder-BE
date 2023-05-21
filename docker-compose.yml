@@ -1,17 +1,20 @@
 services:
-  laravel-docker:
-    container_name: laravel-docker
-    build: .
-    # command: php artisan serve --host=0.0.0.0 --port=9000
-    volumes:
-      - ./laravel-app:/var/www/html
-    # ports:
-    #   - 9000:9000
-    networks:
-      # define your network where all containers are connected to each other
-      - invoice-be
-    stdin_open: true
-    tty: true
+  # laravel-docker:
+  #   container_name: laravel-docker
+  #   build: .
+  #   # command: php artisan serve --host=0.0.0.0 --port=9000
+  #   volumes:
+  #     - ./laravel-app:/var/www/html
+  #     - ./laravel-app/vendor:/var/www/html/vendor
+  #   ports:
+  #     - 8080:8000
+  #   networks:
+  #     # define your network where all containers are connected to each other
+  #     - invoice-be
+  #   stdin_open: true
+  #   tty: true
+  #   depends_on:
+  #     - db
   db:
     image: mysql:latest
     restart: always
@@ -41,20 +44,20 @@ services:
     networks:
       # define your network where all containers are connected to each other
       - invoice-be
-  nginx:
-    image: nginx:alpine
-    container_name: nginx
-    ports:
-      - 8080:9000
-    volumes:
-      - ./laravel-app:/var/www/
-      - ./nginx/conf.d/:/etc/nginx/conf.d/
-    depends_on:
-      - laravel-docker
-      - db
-    networks:
-      # define your network where all containers are connected to each other
-      - invoice-be
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: nginx
+  #   ports:
+  #     - 8080:8000
+  #   volumes:
+  #     # - ./laravel-app:/var/www/html
+  #     - ./nginx/conf.d/:/etc/nginx/conf.d/
+  #   depends_on:
+  #     - laravel-docker
+  #     - db
+  #   networks:
+  #     # define your network where all containers are connected to each other
+  #     - invoice-be
 networks:
   invoice-be:
     driver: bridge

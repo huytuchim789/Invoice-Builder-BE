@@ -5,17 +5,24 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
+use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\Response;
 
 class CustomerController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+
+    public function __construct()
+    {
+        $this->middleware('auth:api');
+    }
     public function index()
     {
-        //
+        try {
+            $customers = Customer::all();
+            return Response::customJson(200, $customers, trans('customer.list_success'));
+        } catch (\Exception $e) {
+            return Response::customJson(500, null, $e->getMessage());
+        }
     }
 
     /**
@@ -23,29 +30,31 @@ class CustomerController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
-    {
-        //
-    }
+
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \App\Http\Requests\StoreCustomerRequest  $request
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function store(StoreCustomerRequest $request)
     {
-        //
+        try {
+            $customer = Customer::create($request->validated());
+            return Response::customJson(200, $customer, trans('customer.create_success'));
+        } catch (\Exception $e) {
+            return Response::customJson(500, null, $e->getMessage());
+        }
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Customer  $customer
+     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show(Customer $customer)
+    public function show($id)
     {
         //
     }
@@ -53,34 +62,49 @@ class CustomerController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Customer  $customer
+     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit(Customer $customer)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \App\Http\Requests\UpdateCustomerRequest  $request
-     * @param  \App\Models\Customer  $customer
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateCustomerRequest $request, Customer $customer)
+    public function update(UpdateCustomerRequest $request, $id)
     {
-        //
+        try {
+            // Find the customer by ID
+            $customer = Customer::findOrFail($id);
+            // Update the customer
+            $customer->update($request->validated());
+
+            return Response::customJson(200, $customer, trans('customer.update_success'));
+        } catch (\Exception $e) {
+            return Response::customJson(500, null, $e->getMessage());
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Customer  $customer
+     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Customer $customer)
+    public function destroy($id)
     {
-        //
+        try {
+            // Find the customer by ID
+            $customer = Customer::findOrFail($id);
+
+            // Delete the customer
+            $customer->delete();
+
+            return Response::customJson(200, null, trans('customer.delete_success'));
+        } catch (\Exception $e) {
+            return Response::customJson(500, null, $e->getMessage());
+        }
     }
 }

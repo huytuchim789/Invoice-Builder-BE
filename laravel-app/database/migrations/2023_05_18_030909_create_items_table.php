@@ -13,26 +13,25 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('customers', function (Blueprint $table) {
+        Schema::create('items', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->timestamps();
             $table->string('name');
-            $table->string('company');
-            $table->string('email');
-            $table->string('country');
-            $table->string('address');
-            $table->string('contact_number', 20);
-            $table->string('contact_number_country', 10);
+            $table->text('description')->nullable();
+            $table->integer('cost');
+            $table->float('hours');
+            $table->float('price');
+            $table->uuid('invoice_id');
+            $table->timestamps();
         });
     }
 
     /**
-     * Reverse the migrations.x
+     * Reverse the migrations.
      *
      * @return void
      */
     public function down()
     {
-        Schema::dropIfExists('customers');
+        Schema::dropIfExists('items');
     }
 };

@@ -20,7 +20,7 @@ data:
 	docker exec ${CONTAINER_NAME} bash -c "php artisan migrate"
 	docker exec ${CONTAINER_NAME} bash -c "php artisan db:seed"
 run:
-	docker exec ${CONTAINER_NAME} bash -c "php artisan serve --host=0.0.0.0 --port=9000"
+	docker exec ${CONTAINER_NAME} bash -c "php artisan serve --host=0.0.0.0 --port=8000"
 key-gen:
 	docker exec ${CONTAINER_NAME} bash -c "cp .env.example .env"
 	docker exec ${CONTAINER_NAME} bash -c "php artisan key:generate"
@@ -33,3 +33,6 @@ cache:
 	docker exec ${CONTAINER_NAME} bash -c "php artisan cache:clear"
 jwt-gen:
 	docker exec ${CONTAINER_NAME} bash -c "php artisan jwt:secret"
+
+gen-swagger:
+	docker exec ${CONTAINER_NAME} bash -c "	php artisan laravel-swagger:generate > public/documentation/swagger.json"
