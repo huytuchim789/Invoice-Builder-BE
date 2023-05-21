@@ -2,10 +2,10 @@
 
 namespace App\Jobs;
 
+use App\Events\EmailTransactionStatusUpdated;
 use App\Mail\SendEmailTest;
 use App\Models\EmailTransaction;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -49,6 +49,11 @@ class SendMailJob implements ShouldQueue
             // Update the email transaction status to 'sent'
             $this->emailTransaction->status = 'sent';
             $this->emailTransaction->save();
+            //Todo
+            $emailTransactions = EmailTransaction::select('id', 'status')->simplePaginate(10, ['*'], 'page', 2);
+
+            // Broadcast the list update event
+            event(new EmailTransactionStatusUpdated($emailTransactions));
         } catch (\Exception $e) {
             // Update the email transaction status to 'failed' and save the error message
             $this->emailTransaction->status = 'failed';
