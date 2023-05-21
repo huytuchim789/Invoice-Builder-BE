@@ -10,21 +10,22 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 class SendMailJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $request;
+    protected $data;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($request)
+    public function __construct($data)
     {
-        $this->request = $request;
+        $this->data = $data;
     }
 
     /**
@@ -34,7 +35,8 @@ class SendMailJob implements ShouldQueue
      */
     public function handle()
     {
-        $email = new SendEmailTest($this->request);
-        Mail::to($this->request->input('email'))->send($email);
+        $email = new SendEmailTest($this->data);
+        Mail::to($this->data['email'])->send($email);
+        Storage::disk('temporary')->delete($this->data['filePath']);
     }
 }

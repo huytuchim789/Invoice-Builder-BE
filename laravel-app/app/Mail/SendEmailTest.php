@@ -9,19 +9,22 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class SendEmailTest extends Mailable
 {
     use Queueable, SerializesModels;
-    protected $request;
+    protected $data;
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($request)
+    public function __construct($data)
     {
-        $this->request = $request;
+        $this->data = $data;
     }
 
     /**
@@ -55,10 +58,18 @@ class SendEmailTest extends Mailable
      */
     public function attachments()
     {
+        $filePath = storage_path('app\temporary\\' . $this->data["filePath"]);
+
+        if (!Storage::disk('temporary')->exists($this->data["filePath"])) {
+            return  Response::customJson(404, null, "File not existed in system");
+        }
+
+        $file = new UploadedFile($filePath, basename($filePath));
+
         return [
-            Attachment::fromPath($this->request->file('file')->getRealPath())
-                ->as($this->request->file('file')->getClientOriginalName())
-                ->withMime($this->request->file('file')->getClientMimeType())
+            Attachment::fromPath($file->getRealPath())
+                ->as($file->getClientOriginalName())
+                ->withMime($file->getClientMimeType())
         ];
     }
 }

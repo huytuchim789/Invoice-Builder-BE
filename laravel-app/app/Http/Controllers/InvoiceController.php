@@ -7,7 +7,8 @@ use App\Http\Requests\UpdateInvoiceRequest;
 use App\Jobs\SendMailJob;
 use App\Models\Invoice;
 use App\Models\Item;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
 
@@ -93,7 +94,7 @@ class InvoiceController extends Controller
     public function show($id)
     {
         try {
-            $invoice = Invoice::find($id);
+            $invoice = Invoice::with(['items', 'customer'])->find($id);
             if (!$invoice)
                 return  Response::customJson(404, $invoice, "Not Found");
             return  Response::customJson(200, $invoice, "success");
@@ -136,7 +137,14 @@ class InvoiceController extends Controller
     }
     public function sendEmail(Request $request)
     {
-        dispatch(new SendMailJob($request));
-        dd("Successfully sent email to");
+        try {
+            $file = $request->file('file');
+            $filePath = $file->store('', 'temporary');
+            dispatch(new SendMailJob(["email" => $request->input("email"), "filePath" => $filePath]));
+            return  Response::customJson(200, null, "success");
+        } catch (\Exception $e) {
+            return  Response::customJson(500, null, $e->getMessage());
+
+        }
     }
 }
