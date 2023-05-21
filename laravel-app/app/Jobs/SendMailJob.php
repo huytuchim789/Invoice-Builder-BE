@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Mail\SendEmailTest;
+use App\Models\EmailTransaction;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -16,16 +17,18 @@ class SendMailJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $data;
+    protected $emailTransaction;
+    protected $filePath;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($data)
+    public function __construct(EmailTransaction $emailTransaction, $filePath)
     {
-        $this->data = $data;
+        $this->emailTransaction = $emailTransaction;
+        $this->filePath = $filePath;
     }
 
     /**
@@ -34,9 +37,25 @@ class SendMailJob implements ShouldQueue
      * @return void
      */
     public function handle()
+
     {
-        $email = new SendEmailTest($this->data);
-        Mail::to($this->data['email'])->send($email);
-        Storage::disk('temporary')->delete($this->data['filePath']);
+        // $email = new SendEmailTest($this->data);
+
+        try {
+            $customerEmail = $this->emailTransaction->customer->email;
+            $email = new SendEmailTest(["email" => $customerEmail, "filePath" => $this->filePath]);
+            Mail::to($customerEmail)->send($email);
+
+            // Update the email transaction status to 'sent'
+            $this->emailTransaction->status = 'sent';
+            $this->emailTransaction->save();
+        } catch (\Exception $e) {
+            // Update the email transaction status to 'failed' and save the error message
+            $this->emailTransaction->status = 'failed';
+            $this->emailTransaction->error_message = $e->getMessage();
+            $this->emailTransaction->save();
+        }
+
+        Storage::disk('temporary')->delete($this->filePath);
     }
 }
