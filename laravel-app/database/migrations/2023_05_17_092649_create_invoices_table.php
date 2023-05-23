@@ -19,6 +19,7 @@ return new class extends Migration
             $table->date('issued_date');
             $table->date('created_date');
             $table->text('note');
+            $table->uuid('sender_id')->nullable();
             $table->float('tax')->default(20);
             $table->string('sale_person');
             $table->uuid('customer_id')->nullable();

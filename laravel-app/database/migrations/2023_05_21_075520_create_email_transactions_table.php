@@ -16,7 +16,6 @@ return new class extends Migration
         Schema::create('email_transactions', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('invoice_id');
-            $table->uuid('customer_id')->nullable();
             $table->string('status')->default('pending');
             $table->text('error_message')->nullable();
             $table->timestamps();

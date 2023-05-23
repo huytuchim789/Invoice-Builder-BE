@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use Tymon\JWTAuth\Contracts\Providers\Auth as ProvidersAuth;
 use Validator;
 
 class AuthController extends Controller
@@ -102,7 +103,7 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 60,
+            'expires_in' => auth()->factory()->getTTL() * 600,
             'user' => auth()->user()
         ]);
     }

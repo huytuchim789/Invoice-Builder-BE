@@ -21,6 +21,12 @@ class InvoiceController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+
+    public function __construct()
+    {
+        $this->middleware('auth:api');
+    }
+
     public function index()
     {
         try {
@@ -50,7 +56,7 @@ class InvoiceController extends Controller
     {
         try {
             $validatedData = $request->validated();
-            $invoice = $this->saveInvoice($validatedData);
+            $invoice = $this->saveInvoice(array_merge($validatedData, ["sender_id" => auth()->user()->id]));
 
             // Return a response indicating success
             return  Response::customJson(200, $invoice, "success");
@@ -116,17 +122,22 @@ class InvoiceController extends Controller
             $filePath = $file->store('', 'temporary');
             $page = $request->query('page');
             // dd($request->query('is_saved'));
+            if (EmailTransaction::where(['invoice_id' => $request->invoice_id])->exists())
+                return Response::customJson(403, null, "use resend email instead");
+
             $invoice = Invoice::find($request->invoice_id);
+            if (!$invoice) {
+                return Response::customJson(404, null, "Invoice not found");
+            }
             // } else {
             //     $validatedData = $request->validated();
             //     $invoice = $this->saveInvoice($validatedData);
             // }
             $emailTransaction = EmailTransaction::create([
                 'invoice_id' => $invoice->id,
-                'customer_id' => $invoice->customer->id,
                 'status' => 'pending',
             ]);
-            dispatch(new SendMailJob($emailTransaction, $filePath, $page));
+            dispatch(new SendMailJob($emailTransaction, $filePath, $page, auth()->user()));
             return  Response::customJson(200, null, "success");
         } catch (\Exception $e) {
             return  Response::customJson(500, null, $e->getMessage());
@@ -144,6 +155,7 @@ class InvoiceController extends Controller
         $invoice->note = $validatedData['note'];
         $invoice->tax = $validatedData['tax'];
         $invoice->sale_person = $validatedData['sale_person'];
+        $invoice->sender_id = $validatedData['sender_id'];
         $invoice->customer_id = $validatedData['customer_id'];
         $invoice->total = $validatedData['total'];
         $invoice->save();

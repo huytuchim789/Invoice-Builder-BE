@@ -10,6 +10,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
@@ -20,14 +21,16 @@ class SendMailJob implements ShouldQueue
     protected $emailTransaction;
     protected $filePath;
     protected $page;
+    protected $user;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(EmailTransaction $emailTransaction, $filePath, $page)
+    public function __construct(EmailTransaction $emailTransaction, $filePath, $page, $user)
     {
+        $this->user = $user;
         $this->emailTransaction = $emailTransaction;
         $this->filePath = $filePath;
         $this->page = $page;
@@ -39,20 +42,20 @@ class SendMailJob implements ShouldQueue
      * @return void
      */
     public function handle()
-
     {
-        // $email = new SendEmailTest($this->data);
-
         try {
-            $customerEmail = $this->emailTransaction->customer->email;
+            $customerEmail = $this->emailTransaction->invoice->customer->email;
             $email = new SendEmailTest(["email" => $customerEmail, "filePath" => $this->filePath]);
             Mail::to($customerEmail)->send($email);
 
             // Update the email transaction status to 'sent'
             $this->emailTransaction->status = 'sent';
             $this->emailTransaction->save();
-            //Todo
-            $emailTransactions = EmailTransaction::select('id', 'status')->simplePaginate(10, ['*'], 'page', $this->page);
+            $user = $this->user;
+            // Retrieve email transactions for the current user
+            $emailTransactions = EmailTransaction::whereHas('invoice', function ($query) use ($user) {
+                $query->where('sender_id', $user->id);
+            })->select('id', 'status')->simplePaginate(10, ['*'], 'page', $this->page);
 
             // Broadcast the list update event
             event(new EmailTransactionStatusUpdated($emailTransactions));
