@@ -52,7 +52,7 @@ class SendMailJob implements ShouldQueue
             $this->emailTransaction->status = 'sent';
             $this->emailTransaction->save();
             //Todo
-            $emailTransactions = EmailTransaction::select('id', 'status')->simplePaginate(10, ['*'], 'page', $page);
+            $emailTransactions = EmailTransaction::select('id', 'status')->simplePaginate(10, ['*'], 'page', $this->page);
 
             // Broadcast the list update event
             event(new EmailTransactionStatusUpdated($emailTransactions));
