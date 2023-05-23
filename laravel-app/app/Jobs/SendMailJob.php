@@ -19,16 +19,18 @@ class SendMailJob implements ShouldQueue
 
     protected $emailTransaction;
     protected $filePath;
+    protected $page;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(EmailTransaction $emailTransaction, $filePath)
+    public function __construct(EmailTransaction $emailTransaction, $filePath, $page)
     {
         $this->emailTransaction = $emailTransaction;
         $this->filePath = $filePath;
+        $this->page = $page;
     }
 
     /**
@@ -50,7 +52,7 @@ class SendMailJob implements ShouldQueue
             $this->emailTransaction->status = 'sent';
             $this->emailTransaction->save();
             //Todo
-            $emailTransactions = EmailTransaction::select('id', 'status')->simplePaginate(10, ['*'], 'page', 2);
+            $emailTransactions = EmailTransaction::select('id', 'status')->simplePaginate(10, ['*'], 'page', $page);
 
             // Broadcast the list update event
             event(new EmailTransactionStatusUpdated($emailTransactions));

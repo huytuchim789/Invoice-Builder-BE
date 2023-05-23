@@ -114,6 +114,7 @@ class InvoiceController extends Controller
         try {
             $file = $request->file('file');
             $filePath = $file->store('', 'temporary');
+            $page = $request->query('page');
             // dd($request->query('is_saved'));
             $invoice = Invoice::find($request->invoice_id);
             // } else {
@@ -125,7 +126,7 @@ class InvoiceController extends Controller
                 'customer_id' => $invoice->customer->id,
                 'status' => 'pending',
             ]);
-            dispatch(new SendMailJob($emailTransaction, $filePath));
+            dispatch(new SendMailJob($emailTransaction, $filePath, $page));
             return  Response::customJson(200, null, "success");
         } catch (\Exception $e) {
             return  Response::customJson(500, null, $e->getMessage());
