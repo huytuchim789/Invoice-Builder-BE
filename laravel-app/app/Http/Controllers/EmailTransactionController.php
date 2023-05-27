@@ -17,8 +17,8 @@ class EmailTransactionController extends Controller
     {
         try {
             $user = auth()->user();
-            $page = $request->query('page') + 1 || 1;
-            $limit = $request->query('limit')  || 10;
+            $page = $request->query('page') + 1 ?? 1;
+            $limit = $request->query('limit')  ?? 10;
 
             if (!$user) {
                 // User not authenticated

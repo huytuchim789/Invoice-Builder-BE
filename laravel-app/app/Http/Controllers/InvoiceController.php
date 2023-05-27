@@ -127,10 +127,11 @@ class InvoiceController extends Controller
             }
 
             $existingTransaction = EmailTransaction::where('invoice_id', $request->invoice_id)->first();
-            if ($existingTransaction->status == 'sent' || $existingTransaction->status == 'failed') {
-                // Use the existing email transaction
-                $emailTransaction = $existingTransaction;
-                $message = "Resend Successfully";
+            if ($existingTransaction) {
+                if ($existingTransaction->status == 'sent' || $existingTransaction->status == 'failed') {
+                    $emailTransaction = $existingTransaction;
+                    $message = "Resend Successfully";
+                }
             } else {
                 // Create a new email transaction
                 $emailTransaction = EmailTransaction::create([
