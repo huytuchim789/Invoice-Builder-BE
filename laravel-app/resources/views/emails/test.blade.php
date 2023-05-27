@@ -9,7 +9,7 @@
 </head>
 
 <body>
-
+    {{$emailMessage}}
 </body>
 
 </html>

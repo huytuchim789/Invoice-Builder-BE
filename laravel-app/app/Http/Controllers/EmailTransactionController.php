@@ -13,28 +13,47 @@ class EmailTransactionController extends Controller
         $this->middleware('auth:api');
     }
 
-
     public function index(Request $request)
     {
         try {
             $user = auth()->user();
-            $page = $request->query('page') || 1;
+            $page = $request->query('page') + 1 || 1;
+            $limit = $request->query('limit')  || 10;
+
             if (!$user) {
                 // User not authenticated
                 // Handle the scenario accordingly
             }
 
-            $emailTransactions = EmailTransaction::with('invoice') // Eager load the invoice relationship
+            $query = EmailTransaction::with(['invoice.customer']) // Eager load the invoice relationship
                 ->whereIn('invoice_id', function ($query) use ($user) {
                     $query->select('id')
                         ->from('invoices')
                         ->where('sender_id', $user->id);
-                })
-                ->simplePaginate(10, ['*'], 'page', $page);
+                });
+
+            // Retrieve the search parameters from the request
+            $customerEmail = $request->query('customer_email');
+            $invoiceId = $request->query('invoice_id');
+
+            // Perform the search if the search parameters are provided
+            if ($customerEmail) {
+                $query->whereHas('invoice.customer', function ($query) use ($customerEmail) {
+                    $query->where('email', 'LIKE', "%$customerEmail%");
+                });
+            }
+
+            if ($invoiceId) {
+                $query->whereHas('invoice', function ($query) use ($invoiceId) {
+                    $query->where('id', $invoiceId);
+                });
+            }
+
+            $emailTransactions = $query->simplePaginate($limit, ['*'], 'page', $page);
 
             // Perform your desired actions with the $emailTransactions
 
-            return  Response::customJson(200, $emailTransactions, "success");
+            return Response::customJson(200, $emailTransactions, "success");
         } catch (\Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
         }

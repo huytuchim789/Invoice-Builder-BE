@@ -120,29 +120,39 @@ class InvoiceController extends Controller
         try {
             $file = $request->file('file');
             $filePath = $file->store('', 'temporary');
-            $page = $request->query('page');
-            // dd($request->query('is_saved'));
-            if (EmailTransaction::where(['invoice_id' => $request->invoice_id])->exists())
-                return Response::customJson(403, null, "use resend email instead");
 
             $invoice = Invoice::find($request->invoice_id);
             if (!$invoice) {
                 return Response::customJson(404, null, "Invoice not found");
             }
-            // } else {
-            //     $validatedData = $request->validated();
-            //     $invoice = $this->saveInvoice($validatedData);
-            // }
-            $emailTransaction = EmailTransaction::create([
-                'invoice_id' => $invoice->id,
-                'status' => 'pending',
-            ]);
-            dispatch(new SendMailJob($emailTransaction, $filePath, $page, auth()->user()));
-            return  Response::customJson(200, null, "success");
+
+            $existingTransaction = EmailTransaction::where('invoice_id', $request->invoice_id)->first();
+            if ($existingTransaction->status == 'sent' || $existingTransaction->status == 'failed') {
+                // Use the existing email transaction
+                $emailTransaction = $existingTransaction;
+                $message = "Resend Successfully";
+            } else {
+                // Create a new email transaction
+                $emailTransaction = EmailTransaction::create([
+                    'invoice_id' => $invoice->id,
+                    'status' => 'pending',
+                ]);
+                $message = "Send Successfully";
+            }
+
+            $emailInfo = [
+                "subject" => $request->subject ?? '',
+                "message" => $request->message ?? '',
+            ];
+
+            dispatch(new SendMailJob($emailTransaction, $filePath, $emailInfo, auth()->user()));
+
+            return Response::customJson(200, null, $message);
         } catch (\Exception $e) {
-            return  Response::customJson(500, null, $e->getMessage());
+            return Response::customJson(500, null, $e->getMessage());
         }
     }
+
 
     private function saveInvoice(mixed $validatedData)
     {

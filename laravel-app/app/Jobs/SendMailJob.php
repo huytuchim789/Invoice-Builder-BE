@@ -20,7 +20,7 @@ class SendMailJob implements ShouldQueue
 
     protected $emailTransaction;
     protected $filePath;
-    protected $page;
+    protected $emailInfo;
     protected $user;
 
     /**
@@ -28,12 +28,12 @@ class SendMailJob implements ShouldQueue
      *
      * @return void
      */
-    public function __construct(EmailTransaction $emailTransaction, $filePath, $page, $user)
+    public function __construct(EmailTransaction $emailTransaction, $filePath, $emailInfo, $user)
     {
         $this->user = $user;
         $this->emailTransaction = $emailTransaction;
         $this->filePath = $filePath;
-        $this->page = $page;
+        $this->emailInfo = $emailInfo;
     }
 
     /**
@@ -45,20 +45,18 @@ class SendMailJob implements ShouldQueue
     {
         try {
             $customerEmail = $this->emailTransaction->invoice->customer->email;
-            $email = new SendEmailTest(["email" => $customerEmail, "filePath" => $this->filePath]);
+            $email = new SendEmailTest(["email" => $customerEmail, "filePath" => $this->filePath, "subject" => $this->emailInfo["subject"], "message" => $this->emailInfo["message"]]);
             Mail::to($customerEmail)->send($email);
 
             // Update the email transaction status to 'sent'
             $this->emailTransaction->status = 'sent';
+            $this->emailTransaction->error_message = null;
             $this->emailTransaction->save();
-            $user = $this->user;
             // Retrieve email transactions for the current user
-            $emailTransactions = EmailTransaction::whereHas('invoice', function ($query) use ($user) {
-                $query->where('sender_id', $user->id);
-            })->select('id', 'status')->simplePaginate(10, ['*'], 'page', $this->page);
+
 
             // Broadcast the list update event
-            event(new EmailTransactionStatusUpdated($emailTransactions));
+            event(new EmailTransactionStatusUpdated($this->emailTransaction));
         } catch (\Exception $e) {
             // Update the email transaction status to 'failed' and save the error message
             $this->emailTransaction->status = 'failed';

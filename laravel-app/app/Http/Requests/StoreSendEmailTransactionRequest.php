@@ -39,6 +39,9 @@ class StoreSendEmailTransactionRequest extends FormRequest
             // 'total' => ['numeric'],
             'file' => ['required', 'file', 'mimes:pdf'],
             'invoice_id' => ['string'],
+            'subject' => ['string'],
+            'message' => ['string'],
+
 
         ];
     }

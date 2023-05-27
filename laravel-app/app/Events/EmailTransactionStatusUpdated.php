@@ -14,11 +14,11 @@ class EmailTransactionStatusUpdated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $emailTransactions;
+    public $emailTransaction;
 
-    public function __construct($emailTransactions)
+    public function __construct($emailTransaction)
     {
-        $this->emailTransactions = $emailTransactions;
+        $this->emailTransaction = $emailTransaction;
     }
 
     public function broadcastOn()
