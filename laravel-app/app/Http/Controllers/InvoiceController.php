@@ -31,7 +31,7 @@ class InvoiceController extends Controller
     {
         try {
             $invoices = Invoice::with(['items', 'customer'])->paginate(15);
-            return  Response::customJson(200, $invoices, "success");
+            return Response::customJson(200, $invoices, "success");
         } catch (\Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
         }
@@ -49,7 +49,7 @@ class InvoiceController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \App\Http\Requests\StoreInvoiceRequest  $request
+     * @param \App\Http\Requests\StoreInvoiceRequest $request
      * @return \Illuminate\Http\Response
      */
     public function store(StoreInvoiceRequest $request)
@@ -57,9 +57,12 @@ class InvoiceController extends Controller
         try {
             $validatedData = $request->validated();
             $invoice = $this->saveInvoice(array_merge($validatedData, ["sender_id" => auth()->user()->id]));
-
+            $emailTransaction = EmailTransaction::create([
+                'invoice_id' => $invoice->id,
+                'status' => 'draft',
+            ]);
             // Return a response indicating success
-            return  Response::customJson(200, $invoice, "success");
+            return Response::customJson(200, $emailTransaction, "success");
         } catch (\Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
         }
@@ -68,7 +71,7 @@ class InvoiceController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Invoice  $invoice
+     * @param \App\Models\Invoice $invoice
      * @return \Illuminate\Http\Response
      */
     public function show($id)
@@ -76,8 +79,8 @@ class InvoiceController extends Controller
         try {
             $invoice = Invoice::with(['items', 'customer'])->find($id);
             if (!$invoice)
-                return  Response::customJson(404, $invoice, "Not Found");
-            return  Response::customJson(200, $invoice, "success");
+                return Response::customJson(404, $invoice, "Not Found");
+            return Response::customJson(200, $invoice, "success");
         } catch (\Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
         }
@@ -86,7 +89,7 @@ class InvoiceController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Invoice  $invoice
+     * @param \App\Models\Invoice $invoice
      * @return \Illuminate\Http\Response
      */
     public function edit(Invoice $invoice)
@@ -96,8 +99,8 @@ class InvoiceController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \App\Http\Requests\UpdateInvoiceRequest  $request
-     * @param  \App\Models\Invoice  $invoice
+     * @param \App\Http\Requests\UpdateInvoiceRequest $request
+     * @param \App\Models\Invoice $invoice
      * @return \Illuminate\Http\Response
      */
     public function update(UpdateInvoiceRequest $request, Invoice $invoice)
@@ -108,13 +111,14 @@ class InvoiceController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Invoice  $invoice
+     * @param \App\Models\Invoice $invoice
      * @return \Illuminate\Http\Response
      */
     public function destroy(Invoice $invoice)
     {
         //
     }
+
     public function sendEmail(StoreSendEmailTransactionRequest $request)
     {
         try {
