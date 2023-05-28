@@ -21,19 +21,21 @@ class SendMailJob implements ShouldQueue
     protected $emailTransaction;
     protected $filePath;
     protected $emailInfo;
-    protected $user;
+    protected $sender;
+    protected $page;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(EmailTransaction $emailTransaction, $filePath, $emailInfo, $user)
+    public function __construct(EmailTransaction $emailTransaction, $filePath, $emailInfo, $sender, $page)
     {
-        $this->user = $user;
+        $this->sender = $sender;
         $this->emailTransaction = $emailTransaction;
         $this->filePath = $filePath;
         $this->emailInfo = $emailInfo;
+        $this->page = $page;
     }
 
     /**
@@ -52,11 +54,11 @@ class SendMailJob implements ShouldQueue
             $this->emailTransaction->status = 'sent';
             $this->emailTransaction->error_message = null;
             $this->emailTransaction->save();
-            // Retrieve email transactions for the current user
+            // Retrieve email transactions for the current sender
 
 
             // Broadcast the list update event
-            event(new EmailTransactionStatusUpdated($this->emailTransaction));
+            event(new EmailTransactionStatusUpdated($this->sender, $this->emailTransaction, $this->page));
         } catch (\Exception $e) {
             // Update the email transaction status to 'failed' and save the error message
             $this->emailTransaction->status = 'failed';

@@ -14,20 +14,30 @@ class EmailTransactionStatusUpdated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $emailTransaction;
+    protected $emailTransaction;
+    protected $sender;
+    protected $page;
 
-    public function __construct($emailTransaction)
+    public function __construct($sender, $emailTransaction, $page)
     {
         $this->emailTransaction = $emailTransaction;
+        $this->sender = $sender;
+        $this->page = $page;
     }
 
     public function broadcastOn()
     {
-        return new Channel('email-transactions');
+        return new PrivateChannel('sender=' . $this->sender->id . '_email-transactions_' . 'page=' . $this->page);
     }
 
     public function broadcastAs()
     {
         return 'list-updated';
+    }
+    public function broadcastWith()
+    {
+        return [
+            'emailTransaction' => $this->emailTransaction,
+        ];
     }
 }

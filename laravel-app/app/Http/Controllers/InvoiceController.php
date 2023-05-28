@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\EmailTransactionStatusUpdated;
 use App\Http\Requests\StoreInvoiceRequest;
 use App\Http\Requests\StoreSendEmailTransactionRequest;
 use App\Http\Requests\UpdateInvoiceRequest;
@@ -125,6 +126,8 @@ class InvoiceController extends Controller
             $emailTransaction = null;
             $file = $request->file('file');
             $filePath = $file->store('', 'temporary');
+            $sender = auth()->user();
+            $page = $request->query('page') + 1 ?? 1;
 
             $invoice = Invoice::find($request->invoice_id);
             if (!$invoice) {
@@ -138,6 +141,8 @@ class InvoiceController extends Controller
                     $message = "Resend Successfully";
                 } elseif ($existingTransaction->status == 'draft') {
                     $emailTransaction = $existingTransaction;
+                    $emailTransaction->status = 'pending';
+                    event(new EmailTransactionStatusUpdated($sender, $emailTransaction, $page));
                     $message = "Send Successfully";
                 }
             } else {
@@ -154,7 +159,7 @@ class InvoiceController extends Controller
                 "message" => $request->message ?? '',
             ];
 
-            dispatch(new SendMailJob($emailTransaction, $filePath, $emailInfo, auth()->user()));
+            dispatch(new SendMailJob($emailTransaction, $filePath, $emailInfo, $sender, $page));
 
             return Response::customJson(200, null, $message);
         } catch (\Exception $e) {
