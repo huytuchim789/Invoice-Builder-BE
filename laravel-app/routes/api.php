@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+    return auth()->user();
 });
 
 Route::get('/healthz', function () {
@@ -30,6 +30,8 @@ Route::group([
     Route::name('auth')->group(base_path('routes/auth/auth.php'));
     Route::name('google_auth')->group(base_path('routes/auth/googleAuth.php'));
     Route::name('invoices')->group(base_path('routes/invoice/invoice.php'));
+    Route::name('transactions')->group(base_path('routes/transaction/transaction.php'));
+    Route::name('notifications')->group(base_path('routes/notification/notification.php'));
 });
 
 Route::post('send-email', [InvoiceController::class, 'sendEmail']);

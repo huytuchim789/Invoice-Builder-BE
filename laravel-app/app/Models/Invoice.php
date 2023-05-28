@@ -15,7 +15,9 @@ class Invoice extends Model
         'created_date',
         'note',
         'tax',
-        'sale_person'
+        'sale_person',
+        'sender_id',
+        'customer_id'
     ];
 
     public function items()
@@ -24,6 +26,11 @@ class Invoice extends Model
     }
     public function customer()
     {
-        return $this->belongsTo(Customer::class);
+        return $this->belongsTo(Customer::class, 'customer_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'sender_id');
     }
 }

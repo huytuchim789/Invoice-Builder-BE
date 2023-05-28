@@ -35,7 +35,7 @@ class SendEmailTest extends Mailable
     public function envelope()
     {
         return new Envelope(
-            subject: 'Send Email Test',
+            subject: $this->data["subject"],
         );
     }
 
@@ -48,6 +48,9 @@ class SendEmailTest extends Mailable
     {
         return new Content(
             view: 'emails.test',
+            with: [
+                'emailMessage' => $this->data["message"],
+            ],
         );
     }
 
