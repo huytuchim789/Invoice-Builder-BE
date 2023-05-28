@@ -136,6 +136,9 @@ class InvoiceController extends Controller
                 if ($existingTransaction->status == 'sent' || $existingTransaction->status == 'failed') {
                     $emailTransaction = $existingTransaction;
                     $message = "Resend Successfully";
+                } elseif ($existingTransaction->status == 'draft') {
+                    $emailTransaction = $existingTransaction;
+                    $message = "Send Successfully";
                 }
             } else {
                 // Create a new email transaction
