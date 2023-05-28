@@ -53,6 +53,7 @@ class SendMailJob implements ShouldQueue
             // Update the email transaction status to 'sent'
             $this->emailTransaction->status = 'sent';
             $this->emailTransaction->error_message = null;
+            $this->sender->sendEmailNotification($this->emailTransaction);
             $this->emailTransaction->save();
             // Retrieve email transactions for the current sender
 

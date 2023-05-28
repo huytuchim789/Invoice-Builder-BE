@@ -31,6 +31,7 @@ Route::group([
     Route::name('google_auth')->group(base_path('routes/auth/googleAuth.php'));
     Route::name('invoices')->group(base_path('routes/invoice/invoice.php'));
     Route::name('transactions')->group(base_path('routes/transaction/transaction.php'));
+    Route::name('notifications')->group(base_path('routes/notification/notification.php'));
 });
 
 Route::post('send-email', [InvoiceController::class, 'sendEmail']);
