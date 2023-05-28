@@ -16,7 +16,9 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 class SendEmailTest extends Mailable
 {
     use Queueable, SerializesModels;
+
     protected $data;
+
     /**
      * Create a new message instance.
      *
@@ -61,10 +63,10 @@ class SendEmailTest extends Mailable
      */
     public function attachments()
     {
-        $filePath = storage_path('app\temporary\\' . $this->data["filePath"]);
+        $filePath = storage_path('app' . DIRECTORY_SEPARATOR . 'temporary' . DIRECTORY_SEPARATOR . $this->data["filePath"]);
 
         if (!Storage::disk('temporary')->exists($this->data["filePath"])) {
-            return  Response::customJson(404, null, "File not existed in system");
+            return Response::customJson(404, null, "File not existed in system");
         }
 
         $file = new UploadedFile($filePath, basename($filePath));
