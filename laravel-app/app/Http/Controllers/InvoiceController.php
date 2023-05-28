@@ -122,6 +122,7 @@ class InvoiceController extends Controller
     public function sendEmail(StoreSendEmailTransactionRequest $request)
     {
         try {
+            $emailTransaction = null;
             $file = $request->file('file');
             $filePath = $file->store('', 'temporary');
 

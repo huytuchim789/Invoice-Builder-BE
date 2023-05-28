@@ -30,7 +30,8 @@ class EmailTransactionController extends Controller
                     $query->select('id')
                         ->from('invoices')
                         ->where('sender_id', $user->id);
-                });
+                })->orderBy('created_at', 'desc')
+                ->orderBy('updated_at', 'desc');;
 
             // Retrieve the search parameters from the request
             $customerEmail = $request->query('customer_email');
