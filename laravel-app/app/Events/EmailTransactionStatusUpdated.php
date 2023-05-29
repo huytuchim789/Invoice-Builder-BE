@@ -27,13 +27,14 @@ class EmailTransactionStatusUpdated implements ShouldBroadcast
 
     public function broadcastOn()
     {
-        return new PrivateChannel('sender=' . $this->sender->id . '_email-transactions_' . 'page=' . $this->page);
+        return new Channel('sender=' . $this->sender->id . '_email-transactions_' . 'page=' . $this->page);
     }
 
     public function broadcastAs()
     {
         return 'list-updated';
     }
+
     public function broadcastWith()
     {
         return [
