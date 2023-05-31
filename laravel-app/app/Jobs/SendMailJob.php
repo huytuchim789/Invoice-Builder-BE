@@ -59,12 +59,13 @@ class SendMailJob implements ShouldQueue
 
 
             // Broadcast the list update event
-            event(new EmailTransactionStatusUpdated($this->sender, $this->emailTransaction, $this->page));
+            event(new EmailTransactionStatusUpdated($this->sender, $this->emailTransaction->toArray(), $this->page));
         } catch (\Exception $e) {
             // Update the email transaction status to 'failed' and save the error message
             $this->emailTransaction->status = 'failed';
             $this->emailTransaction->error_message = $e->getMessage();
             $this->emailTransaction->save();
+            event(new EmailTransactionStatusUpdated($this->sender, $this->emailTransaction->toArray(), $this->page));
         }
 
         Storage::disk('temporary')->delete($this->filePath);

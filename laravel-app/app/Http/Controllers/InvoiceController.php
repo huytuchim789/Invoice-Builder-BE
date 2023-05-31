@@ -138,11 +138,13 @@ class InvoiceController extends Controller
             if ($existingTransaction) {
                 if ($existingTransaction->status == 'sent' || $existingTransaction->status == 'failed') {
                     $emailTransaction = $existingTransaction;
+                    $emailTransaction->status = 'pending';
+                    event(new EmailTransactionStatusUpdated($sender, $emailTransaction->toArray(), $page));
                     $message = "Resend Successfully";
                 } elseif ($existingTransaction->status == 'draft') {
                     $emailTransaction = $existingTransaction;
                     $emailTransaction->status = 'pending';
-                    event(new EmailTransactionStatusUpdated($sender, $emailTransaction, $page));
+                    event(new EmailTransactionStatusUpdated($sender, $emailTransaction->toArray(), $page));
                     $message = "Send Successfully";
                 }
             } else {
@@ -151,6 +153,7 @@ class InvoiceController extends Controller
                     'invoice_id' => $invoice->id,
                     'status' => 'pending',
                 ]);
+                event(new EmailTransactionStatusUpdated($sender, $emailTransaction, $page));
                 $message = "Send Successfully";
             }
 
