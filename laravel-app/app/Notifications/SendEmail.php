@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -56,7 +57,7 @@ class SendEmail extends Notification
     public function toArray($notifiable)
     {
         return [
-            'email_transaction_id' => $this->emailTransaction->id,
+            'email_transaction' => $this->emailTransaction,
             'message' => 'Email sent successfully',
             // Add more data if needed
         ];
