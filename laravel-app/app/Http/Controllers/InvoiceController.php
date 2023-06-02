@@ -221,8 +221,6 @@ class InvoiceController extends Controller
     {
         try {
             $emailTransaction = null;
-            $file = $request->file('file');
-            $filePath = $file->store('', 'temporary');
             $sender = auth()->user();
             $page = $request->query('page') + 1 ?? 1;
 
@@ -259,7 +257,7 @@ class InvoiceController extends Controller
                 "message" => $request->message ?? '',
             ];
 
-            dispatch(new SendMailJob($emailTransaction, $filePath, $emailInfo, $sender, $page));
+            dispatch(new SendMailJob($emailTransaction, $emailInfo, $sender, $page));
 
             return Response::customJson(200, null, $message);
         } catch (Exception $e) {

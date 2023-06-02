@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Attachment;
@@ -63,18 +64,32 @@ class SendEmailTest extends Mailable
      */
     public function attachments()
     {
-        $filePath = storage_path('app' . DIRECTORY_SEPARATOR . 'temporary' . DIRECTORY_SEPARATOR . $this->data["filePath"]);
 
-        if (!Storage::disk('temporary')->exists($this->data["filePath"])) {
-            return Response::customJson(404, null, "File not existed in system");
+        $fileUrl = $this->data["file"];
+        if (!$fileUrl) {
+            return Response::customJson(404, null, "File does not exist in the system");
         }
 
-        $file = new UploadedFile($filePath, basename($filePath));
+        $fileName = basename($fileUrl);
+        $tempFilePath = storage_path('app'.DIRECTORY_SEPARATOR.'temporary'.DIRECTORY_SEPARATOR . $fileName);
 
-        return [
-            Attachment::fromPath($file->getRealPath())
-                ->as($file->getClientOriginalName())
-                ->withMime($file->getClientMimeType())
-        ];
+        // Download the file from Cloudinary and save it locally
+        Cloudinary::($fileUrl, $tempFilePath);
+
+        // Check if the file was downloaded successfully
+        if (!file_exists($tempFilePath)) {
+            return Response::customJson(404, null, "File could not be downloaded from Cloudinary");
+        }
+//
+//        // Create an UploadedFile instance from the downloaded file
+//        $file = new UploadedFile($tempFilePath);
+//
+//        // Create the Attachment object
+//        $attachment = Attachment::fromPath($file->getRealPath())
+//            ->as($file->getClientOriginalName())
+//            ->withMime($file->getClientMimeType());
+//
+//        // Return the attachment as an array
+//        return [$attachment];
     }
 }
