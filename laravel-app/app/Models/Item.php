@@ -9,4 +9,14 @@ use Illuminate\Database\Eloquent\Model;
 class Item extends Model
 {
     use HasFactory, HasUuids;
+    protected $fillable=[
+        'name',
+        'quantity',
+        'price',
+        'invoice_id',
+        'description',
+        'cost',
+        'hours',
+
+    ];
 }

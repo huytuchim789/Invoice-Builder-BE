@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use CloudinaryLabs\CloudinaryLaravel\MediaAlly;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Invoice extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, MediaAlly;
 
     protected $fillable = [
         'issued_date',
@@ -24,6 +25,7 @@ class Invoice extends Model
     {
         return $this->hasMany(Item::class);
     }
+
     public function customer()
     {
         return $this->belongsTo(Customer::class, 'customer_id');
@@ -32,5 +34,9 @@ class Invoice extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'sender_id');
+    }
+    public function media()
+    {
+        return $this->morphMany(Media::class, 'medially');
     }
 }

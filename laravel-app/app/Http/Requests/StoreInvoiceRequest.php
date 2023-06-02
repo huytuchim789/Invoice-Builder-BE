@@ -36,7 +36,8 @@ class StoreInvoiceRequest extends FormRequest
             'items.*.hours' => ['required', 'numeric'],
             'items.*.price' => ['required', 'numeric'],
             'customer_id' => ['exists:customers,id'],
-            'total' => ['numeric']
+            'total' => ['numeric'],
+            'file' => ['required', 'file', 'mimes:pdf'],
         ];
     }
 }
