@@ -24,25 +24,10 @@ class StoreSendEmailTransactionRequest extends FormRequest
     public function rules()
     {
         return [
-            // 'issued_date' => ['required', 'date'],
-            // 'created_date' => ['required', 'date'],
-            // 'note' => ['required', 'string'],
-            // 'tax' => ['required', 'numeric'],
-            // 'sale_person' => ['required', 'string'],
-            // 'items' => ['required', 'array', 'min:1'],
-            // 'items.*.name' => ['required', 'string'],
-            // 'items.*.description' => ['string'],
-            // 'items.*.cost' => ['required', 'numeric'],
-            // 'items.*.hours' => ['required', 'numeric'],
-            // 'items.*.price' => ['required', 'numeric'],
-            // 'customer_id' => ['exists:customers,id'],
-            // 'total' => ['numeric'],
-            'file' => ['required', 'file', 'mimes:pdf'],
+
             'invoice_id' => ['string'],
             'subject' => ['string'],
             'message' => ['string'],
-
-
         ];
     }
 }

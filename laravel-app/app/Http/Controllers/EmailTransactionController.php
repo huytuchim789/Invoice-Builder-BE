@@ -25,7 +25,7 @@ class EmailTransactionController extends Controller
                 // Handle the scenario accordingly
             }
 
-            $query = EmailTransaction::with(['invoice.customer']) // Eager load the invoice relationship
+            $query = EmailTransaction::with(['invoice.customer','invoice.media']) // Eager load the invoice relationship
                 ->whereIn('invoice_id', function ($query) use ($user) {
                     $query->select('id')
                         ->from('invoices')
