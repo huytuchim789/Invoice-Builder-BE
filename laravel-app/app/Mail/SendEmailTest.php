@@ -2,16 +2,13 @@
 
 namespace App\Mail;
 
-use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Attachment;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Response;
-use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class SendEmailTest extends Mailable
@@ -33,7 +30,7 @@ class SendEmailTest extends Mailable
     /**
      * Get the message envelope.
      *
-     * @return \Illuminate\Mail\Mailables\Envelope
+     * @return Envelope
      */
     public function envelope()
     {
@@ -45,7 +42,7 @@ class SendEmailTest extends Mailable
     /**
      * Get the message content definition.
      *
-     * @return \Illuminate\Mail\Mailables\Content
+     * @return Content
      */
     public function content()
     {
@@ -71,25 +68,21 @@ class SendEmailTest extends Mailable
         }
 
         $fileName = basename($fileUrl);
-        $tempFilePath = storage_path('app'.DIRECTORY_SEPARATOR.'temporary'.DIRECTORY_SEPARATOR . $fileName);
+        $tempFilePath = storage_path('app' . DIRECTORY_SEPARATOR . 'temporary' . DIRECTORY_SEPARATOR . $fileName);
 
         // Download the file from Cloudinary and save it locally
-        Cloudinary::($fileUrl, $tempFilePath);
+        file_put_contents($tempFilePath, file_get_contents($fileUrl));
 
         // Check if the file was downloaded successfully
         if (!file_exists($tempFilePath)) {
             return Response::customJson(404, null, "File could not be downloaded from Cloudinary");
         }
 //
-//        // Create an UploadedFile instance from the downloaded file
-//        $file = new UploadedFile($tempFilePath);
-//
-//        // Create the Attachment object
-//        $attachment = Attachment::fromPath($file->getRealPath())
-//            ->as($file->getClientOriginalName())
-//            ->withMime($file->getClientMimeType());
-//
-//        // Return the attachment as an array
-//        return [$attachment];
+        // Create an UploadedFile instance from the downloaded file
+        $file = new UploadedFile($tempFilePath, $fileName);
+
+        return [Attachment::fromPath($file->getRealPath())
+            ->as($file->getClientOriginalName())
+            ->withMime($file->getClientMimeType())];
     }
 }

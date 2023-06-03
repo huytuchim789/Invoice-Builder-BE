@@ -43,9 +43,10 @@ class SendMailJob implements ShouldQueue
      */
     public function handle()
     {
+        $customerEmail = $this->emailTransaction->invoice->customer->email;
+        $file = $this->emailTransaction->invoice->media()->first()->file_url;
         try {
-            $customerEmail = $this->emailTransaction->invoice->customer->email;
-            $file = $this->emailTransaction->invoice->media()->first()->file_url;
+
             $email = new SendEmailTest(["email" => $customerEmail, "subject" => $this->emailInfo["subject"], "message" => $this->emailInfo["message"], "file" => $file]);
             Mail::to($customerEmail)->send($email);
 
@@ -55,6 +56,7 @@ class SendMailJob implements ShouldQueue
             $this->sender->sendEmailNotification($this->emailTransaction);
             $this->emailTransaction->save();
             // Retrieve email transactions for the current sender
+            $this->deleteDownloadedFile($file);
 
 
             // Broadcast the list update event
@@ -65,6 +67,19 @@ class SendMailJob implements ShouldQueue
             $this->emailTransaction->error_message = $e->getMessage();
             $this->emailTransaction->save();
             event(new EmailTransactionStatusUpdated($this->sender, $this->emailTransaction->toArray(), $this->page));
+            $this->deleteDownloadedFile($file);
+
+        }
+    }
+
+    private function deleteDownloadedFile($fileUrl)
+    {
+        // Extract the file name from the file URL
+        $fileName = basename($fileUrl);
+
+        // Delete the file from the "temporary" disk if it exists
+        if (Storage::disk('temporary')->exists($fileName)) {
+            Storage::disk('temporary')->delete($fileName);
         }
     }
 }

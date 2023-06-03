@@ -10,11 +10,11 @@ use App\Jobs\SendMailJob;
 use App\Models\EmailTransaction;
 use App\Models\Invoice;
 use App\Models\Item;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
-use Illuminate\Http\Request;
 
 class InvoiceController extends Controller
 {
@@ -25,12 +25,12 @@ class InvoiceController extends Controller
      */
 
 
-        protected  $uploadPreset;
+    protected $uploadPreset;
 
     public function __construct()
     {
         $this->middleware('auth:api');
-        $this->uploadPreset=Config::get('cloudinary.upload_preset');
+        $this->uploadPreset = Config::get('cloudinary.upload_preset');
     }
 
     public function index()
@@ -108,8 +108,12 @@ class InvoiceController extends Controller
                 'invoice_id' => $invoice->id,
             ];
         }
-        if ($validatedData['file'])
-            $invoice->attachMedia($validatedData['file'], ['upload_preset' => $this->uploadPreset]);
+        if ($validatedData['file']) {
+            $currentTime = Carbon::now()->format('Ymd_His');
+            $fileName = pathinfo($validatedData['file']->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $invoice->id . '_' . $currentTime;
+            $invoice->attachMedia($validatedData['file'], ['upload_preset' => $this->uploadPreset, 'public_id' => $fileName
+            ]);
+        }
         // Insert items into the database in a single query
         Item::insert($itemsData);
         return $invoice;
@@ -197,7 +201,9 @@ class InvoiceController extends Controller
 
             // Update the attached file if provided
             if ($validatedData['file']) {
-                $invoice->updateMedia($validatedData['file'], ['upload_preset' => $this->uploadPreset]);
+                $currentTime = Carbon::now()->format('Ymd_His');
+                $fileName = pathinfo($validatedData['file']->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $invoice->id . '_' . $currentTime;
+                $invoice->updateMedia($validatedData['file'], ['upload_preset' => $this->uploadPreset, 'public_id' => $fileName]);
             }
 
             return Response::customJson(200, $invoice, "Invoice updated successfully.");
@@ -260,6 +266,24 @@ class InvoiceController extends Controller
             dispatch(new SendMailJob($emailTransaction, $emailInfo, $sender, $page));
 
             return Response::customJson(200, null, $message);
+        } catch (Exception $e) {
+            return Response::customJson(500, null, $e->getMessage());
+        }
+    }
+
+    public function downloadFile($invoiceId)
+    {
+        try {
+            $invoice = Invoice::find($invoiceId);
+            if (!$invoice) {
+                return Response::customJson(404, null, "Invoice not found");
+            }
+            $file = $invoice->fetchFirstMedia();
+            if (!$file) {
+                return Response::customJson(404, null, "File not found");
+            }
+//            $fileUrl = $file->getFullUrl();
+            return Response::customJson(200, $file, "success");
         } catch (Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
         }
