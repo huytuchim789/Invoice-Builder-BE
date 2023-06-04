@@ -36,19 +36,17 @@ class EmailTransactionController extends Controller
                 ->orderBy('updated_at', 'desc');;
 
             // Retrieve the search parameters from the request
-            $customerEmail = $request->query('customer_email');
-            $invoiceId = $request->query('invoice_id');
+            $keyword = $request->query('keyword');
+
 
             // Perform the search if the search parameters are provided
-            if ($customerEmail) {
-                $query->whereHas('invoice.customer', function ($query) use ($customerEmail) {
-                    $query->where('email', 'LIKE', "%$customerEmail%");
-                });
-            }
-
-            if ($invoiceId) {
-                $query->whereHas('invoice', function ($query) use ($invoiceId) {
-                    $query->where('id', $invoiceId);
+            if ($keyword) {
+                $query->where(function ($query) use ($keyword) {
+                    $query->whereHas('invoice', function ($query) use ($keyword) {
+                        $query->where('id', 'LIKE', "%$keyword%");
+                    })->orWhereHas('invoice.customer', function ($query) use ($keyword) {
+                        $query->where('email', 'LIKE', "%$keyword%");
+                    });
                 });
             }
             if ($status) {
