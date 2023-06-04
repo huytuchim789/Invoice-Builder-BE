@@ -19,7 +19,9 @@ class EmailTransactionController extends Controller
             $user = auth()->user();
             $page = $request->query('page') + 1 ?? 1;
             $limit = $request->query('limit')  ?? 10;
-
+            $status = $request->query('status');
+            $startDate = $request->query('start_date');
+            $endDate = $request->query('end_date');
             if (!$user) {
                 // User not authenticated
                 // Handle the scenario accordingly
@@ -49,7 +51,14 @@ class EmailTransactionController extends Controller
                     $query->where('id', $invoiceId);
                 });
             }
-
+            if ($status) {
+                $query->where('status', $status);
+            }
+            if ($startDate && $endDate) {
+                $query->whereHas('invoice', function ($query) use ($startDate, $endDate) {
+                    $query->whereBetween('issued_date', [$startDate, $endDate]);
+                });
+            }
             $emailTransactions = $query->simplePaginate($limit, ['*'], 'page', $page);
 
             // Perform your desired actions with the $emailTransactions
