@@ -138,6 +138,10 @@
       <excludeFolder url="file://$MODULE_DIR$/laravel-app/vendor/vlucas/phpdotenv" />
       <excludeFolder url="file://$MODULE_DIR$/laravel-app/vendor/voku/portable-ascii" />
       <excludeFolder url="file://$MODULE_DIR$/laravel-app/vendor/webmozart/assert" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel-app/vendor/cloudinary-labs/cloudinary-laravel" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel-app/vendor/cloudinary/cloudinary_php" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel-app/vendor/cloudinary/transformation-builder-sdk" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel-app/vendor/teapot/status-code" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

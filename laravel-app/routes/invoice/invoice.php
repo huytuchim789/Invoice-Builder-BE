@@ -15,3 +15,4 @@ use Illuminate\Support\Facades\Route;
 */
 Route::get('/invoices/{invoiceId}/list-pins', [InvoiceController::class, 'listPins']);
 Route::resource('/invoices', InvoiceController::class);
+Route::get('/invoices/{id}/download', [InvoiceController::class, 'downloadFile'])->name('invoices.downloadFile');
