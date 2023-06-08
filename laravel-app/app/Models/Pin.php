@@ -17,8 +17,19 @@ class Pin extends Model
         'invoice_id',
         'user_id',
     ];
+    protected function serializeDate($date)
+    {
+        return $date->format('Y-m-d H:i:s');
+    }
     public function comments()
     {
         return $this->hasMany(Comment::class);
+    }
+    public function user(){
+        return $this->belongsTo(User::class);
+    }
+    public function invoice()
+    {
+        return $this->belongsTo(Invoice::class);
     }
 }

@@ -16,4 +16,12 @@ class Comment extends Model
         'pin_id',
         'content'
     ];
+    protected function serializeDate($date)
+    {
+        return $date->format('Y-m-d H:i:s');
+    }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

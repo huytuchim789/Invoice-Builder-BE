@@ -10,7 +10,10 @@ class EmailTransaction extends Model
 {
     use HasFactory, HasUuids;
     protected $fillable = ['invoice_id', 'status', 'error_message'];
-
+    protected function serializeDate($date)
+    {
+        return $date->format('Y-m-d H:i:s');
+    }
 
     public function invoice()
     {

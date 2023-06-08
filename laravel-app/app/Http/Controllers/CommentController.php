@@ -69,9 +69,9 @@ class CommentController extends Controller
             ]);
 
             // Retrieve the pin list with comments
-            $pins = Pin::with('comments')->where(["invoice_id"=>$validatedData['invoice_id']])->get();
+            $pins = Pin::with(['comments.user'])->where(["invoice_id"=>$validatedData['invoice_id']])->get();
 
-            return Response::customJson(500, $pins, "Success");
+            return Response::customJson(200, $pins, "Success");
         } catch (\Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
         }

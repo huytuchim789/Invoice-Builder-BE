@@ -10,6 +10,7 @@ use App\Jobs\SendMailJob;
 use App\Models\EmailTransaction;
 use App\Models\Invoice;
 use App\Models\Item;
+use App\Models\Pin;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
@@ -201,5 +202,13 @@ class InvoiceController extends Controller
         // Insert items into the database in a single query
         Item::insert($itemsData);
         return $invoice;
+    }
+    public function listPins($invoiceId){
+        try {
+            $pins = Pin::with(['comments.user'])->where('invoice_id', $invoiceId)->get();
+            return Response::customJson(200, $pins, "success");
+        } catch (\Exception $e) {
+            return Response::customJson(500, null, $e->getMessage());
+        }
     }
 }
