@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\InvoiceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 /*
@@ -13,6 +12,5 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-Route::get('/invoices/{invoiceId}/list-pins', [InvoiceController::class, 'listPins']);
-Route::resource('/invoices', InvoiceController::class);
-Route::get('/invoices/{id}/download', [InvoiceController::class, 'downloadFile'])->name('invoices.downloadFile');
+
+Route::resource('pins', \App\Http\Controllers\PinController::class);

@@ -10,6 +10,7 @@ use App\Jobs\SendMailJob;
 use App\Models\EmailTransaction;
 use App\Models\Invoice;
 use App\Models\Item;
+use App\Models\Pin;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Config;
@@ -111,7 +112,8 @@ class InvoiceController extends Controller
         if ($validatedData['file']) {
             $currentTime = Carbon::now()->format('Ymd_His');
             $fileName = pathinfo($validatedData['file']->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $invoice->id . '_' . $currentTime;
-            $invoice->attachMedia($validatedData['file'], ['upload_preset' => $this->uploadPreset, 'public_id' => $fileName
+            $invoice->attachMedia($validatedData['file'], [
+                'upload_preset' => $this->uploadPreset, 'public_id' => $fileName
             ]);
         }
         // Insert items into the database in a single query
@@ -282,10 +284,33 @@ class InvoiceController extends Controller
             if (!$file) {
                 return Response::customJson(404, null, "File not found");
             }
-//            $fileUrl = $file->getFullUrl();
+            //            $fileUrl = $file->getFullUrl();
             return Response::customJson(200, $file, "success");
         } catch (Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
         }
     }
+
+    public function listPins($invoiceId)
+    {
+        try {
+            $invoice = Invoice::find($invoiceId);
+            $file = $invoice->fetchFirstMedia();
+            if (!$file) {
+                return Response::customJson(404, null, "File not found");
+            }
+            $pins = Pin::with(['comments.user'])->where('invoice_id', $invoiceId)->get();
+            return Response::customJson(200, ["pins" => $pins, "file_url" => $this->replaceFileExtension($file->file_url)], "success");
+        } catch (Exception $e) {
+            return Response::customJson(500, null, $e->getMessage());
+        }
+    }
+
+    private function replaceFileExtension($pdfUrl)
+    {
+        $pngUrl = pathinfo($pdfUrl, PATHINFO_DIRNAME) . '/' . pathinfo($pdfUrl, PATHINFO_FILENAME) . '.png';
+
+        return $pngUrl;
+    }
+
 }

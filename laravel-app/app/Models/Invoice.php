@@ -35,6 +35,10 @@ class Invoice extends Model
     {
         return $this->belongsTo(User::class, 'sender_id');
     }
+    public function pins()
+    {
+        return $this->hasMany(Pin::class);
+    }
     public function media()
     {
         return $this->morphMany(Media::class, 'medially');

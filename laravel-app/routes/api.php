@@ -21,7 +21,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::get('/healthz', function () {
-    return response()->json(["a" => "a"], 200);
+    return response()->json(["status" => "OK"], 200);
 });
 Route::group([
     'middleware' => 'api',
@@ -32,6 +32,8 @@ Route::group([
     Route::name('invoices')->group(base_path('routes/invoice/invoice.php'));
     Route::name('transactions')->group(base_path('routes/transaction/transaction.php'));
     Route::name('notifications')->group(base_path('routes/notification/notification.php'));
+    Route::name('pin')->group(base_path('routes/pin/pin.php'));
+    Route::name('comments')->group(base_path('routes/comment/comment.php'));
 });
 
 Route::post('send-email', [InvoiceController::class, 'sendEmail']);
