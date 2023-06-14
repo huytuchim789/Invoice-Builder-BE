@@ -19,3 +19,5 @@ use Illuminate\Support\Facades\Route;
 // ], function ($router) {
 // });
 Route::resource('/customers', CustomerController::class);
+Route::post('/customers/validate-csv', [CustomerController::class, 'validateCSV']);
+

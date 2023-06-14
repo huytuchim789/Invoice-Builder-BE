@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
+use App\Imports\CustomerImport;
 use App\Models\Customer;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Validators\ValidationException;
 
 class CustomerController extends Controller
 {
@@ -15,6 +18,7 @@ class CustomerController extends Controller
     {
         $this->middleware('auth:api');
     }
+
     public function index()
     {
         try {
@@ -35,7 +39,7 @@ class CustomerController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
     public function store(StoreCustomerRequest $request)
@@ -51,7 +55,7 @@ class CustomerController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function show($id)
@@ -62,15 +66,15 @@ class CustomerController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function update(UpdateCustomerRequest $request, $id)
@@ -90,7 +94,7 @@ class CustomerController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
@@ -106,5 +110,39 @@ class CustomerController extends Controller
         } catch (\Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
         }
+    }
+
+    public function validateCSV(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv|max:2048',
+        ]);
+
+        try {
+            $csvPath = $request->file('csv_file')->getRealPath();
+
+            $reader = Excel::toArray(new CustomerImport(), $csvPath);
+
+            $rows = $reader[0];
+
+            if ($this->isValidCSVFormat($rows[0])) {
+                return Response::customJson(200, null, "CSV is valid");
+            }
+            return Response::customJson(400, null, "CSV's format is in valid");
+
+        } catch (ValidationException $e) {
+            return Response::customJson(500, null, $e->getMessage());
+        }
+    }
+
+    private function isValidCSVFormat($headerRow)
+    {
+        $expectedHeaders = ['name', 'company', 'email', 'country', 'address', 'contact_number', 'contact_number_country'];
+
+        if (count($headerRow) !== count($expectedHeaders)) {
+            return false; // Number of columns in header does not match expected headers.
+        }
+
+        return $expectedHeaders == $headerRow;
     }
 }
