@@ -18,4 +18,7 @@ use Illuminate\Support\Facades\Route;
 //     'prefix' => '/'
 // ], function ($router) {
 // });
+Route::get('/customers/export', [CustomerController::class, 'exportCsv']);
 Route::resource('/customers', CustomerController::class);
+Route::post('/customers/validate-csv', [CustomerController::class, 'validateCSV']);
+Route::post('/customers/import', [CustomerController::class, 'saveCSV']);
