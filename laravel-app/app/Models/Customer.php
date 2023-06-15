@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Propaganistas\LaravelPhone\Casts\RawPhoneNumberCast;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Propaganistas\LaravelPhone\Casts\RawPhoneNumberCast;
 
 class Customer extends Model
 {
@@ -19,7 +19,7 @@ class Customer extends Model
         'address',
         'contact_number',
         'contact_number_country',
-
+        'user_id'
     ];
 
     protected $casts = [
