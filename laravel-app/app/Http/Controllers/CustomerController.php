@@ -159,7 +159,7 @@ class CustomerController extends Controller
 
             $result = $this->isValidCSVFormat($csvPath);
             if ($result["valid"]) {
-                return Response::customJson(200, null, "CSV's format is valid");
+                return Response::customJson(200, $result, "CSV's format is valid");
             }
             return Response::customJson(400, $result, "CSV is not valid");
 
@@ -169,7 +169,7 @@ class CustomerController extends Controller
         }
     }
 
-    #[ArrayShape(["valid" => "bool", "errors" => "\Illuminate\Support\Collection|\Maatwebsite\Excel\Validators\Failure[]"])] private function isValidCSVFormat($csvPath): array
+    #[ArrayShape(["valid" => "bool", "errors" => "\Illuminate\Support\Collection|\Maatwebsite\Excel\Validators\Failure[]", "data" => "mixed"])] private function isValidCSVFormat($csvPath): array
     {
         $valid = true;
         $expectedHeaders = ['name', 'company', 'email', 'country', 'address', 'contact_number', 'contact_number_country'];
@@ -184,7 +184,7 @@ class CustomerController extends Controller
         if (count($headerRow) != count($expectedHeaders) || $headerRow != $expectedHeaders || count($failures) > 0) {
             $valid = false;
         }
-        return ["valid" => $valid, "errors" => $failures];
+        return ["valid" => $valid, "errors" => $failures, "data" => $valid ? $import->toArray($csvPath) : null];
     }
 
     public function saveCSV(Request $request)
