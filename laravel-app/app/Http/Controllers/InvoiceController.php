@@ -296,6 +296,12 @@ class InvoiceController extends Controller
     {
         try {
             $invoice = Invoice::find($invoiceId);
+
+            // Check if the authenticated user is the customer or user of the invoice
+            $userId = auth()->user()->id;
+            if ($invoice->customer_id !== $userId && $invoice->sender_id !== $userId) {
+                return Response::customJson(403, null, "Unauthorized");
+            }
             $file = $invoice->fetchFirstMedia();
             if (!$file) {
                 return Response::customJson(404, null, "File not found");
