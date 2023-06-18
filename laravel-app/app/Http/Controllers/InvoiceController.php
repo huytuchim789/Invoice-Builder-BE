@@ -231,13 +231,13 @@ class InvoiceController extends Controller
             $emailTransaction = null;
             $sender = auth()->user();
             $page = $request->query('page') + 1 ?? 1;
-
+            $request->validated();
             $invoice = Invoice::find($request->invoice_id);
             if (!$invoice) {
                 return Response::customJson(404, null, "Invoice not found");
             }
 
-            $existingTransaction = EmailTransaction::where('invoice_id', $request->invoice_id)->first();
+            $existingTransaction = EmailTransaction::where(['invoice_id' => $request->invoice_id, 'method' => $request->send_method])->first();
             if ($existingTransaction) {
                 if ($existingTransaction->status == 'sent' || $existingTransaction->status == 'failed') {
                     $emailTransaction = $existingTransaction;
@@ -255,6 +255,7 @@ class InvoiceController extends Controller
                 $emailTransaction = EmailTransaction::create([
                     'invoice_id' => $invoice->id,
                     'status' => 'pending',
+                    'method' => $request->send_method,
                 ]);
                 event(new EmailTransactionStatusUpdated($sender, $emailTransaction, $page));
                 $message = "Send Successfully";

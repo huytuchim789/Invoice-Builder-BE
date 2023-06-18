@@ -19,6 +19,8 @@ return new class extends Migration {
             $table->string("email_subject")->default("");
             $table->text("email_message")->nullable();
             $table->text('error_message')->nullable();
+            $table->string('method')->default('mail'); // Updated migration
+            $table->unique(['invoice_id', 'method']);
             $table->timestamps();
         });
     }

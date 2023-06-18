@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Events\EmailTransactionStatusUpdated;
 use App\Mail\SendEmailTest;
+use App\Mail\SendWeb;
 use App\Models\EmailTransaction;
 use Exception;
 use Illuminate\Bus\Queueable;
@@ -11,6 +12,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
@@ -46,8 +48,12 @@ class SendMailJob implements ShouldQueue
         $customerEmail = $this->emailTransaction->invoice->customer->email;
         $file = $this->emailTransaction->invoice->media()->first()->file_url;
         try {
-
-            $email = new SendEmailTest(["email" => $customerEmail, "subject" => $this->emailInfo["subject"], "message" => $this->emailInfo["message"], "file" => $file]);
+            $email = null;
+            if ($this->emailTransaction->method == 'mail') {
+                $email = new SendEmailTest(["email" => $customerEmail, "subject" => $this->emailInfo["subject"], "message" => $this->emailInfo["message"], "file" => $file]);
+            } else {
+                $email = new SendWeb($this->emailTransaction);
+            }
             Mail::to($customerEmail)->send($email);
 
             // Update the email transaction status to 'sent'
@@ -56,7 +62,8 @@ class SendMailJob implements ShouldQueue
             $this->sender->sendEmailNotification($this->emailTransaction);
             $this->emailTransaction->save();
             // Retrieve email transactions for the current sender
-            $this->deleteDownloadedFile($file);
+            if ($this->emailTransaction->send_method == 'mail')
+                $this->deleteDownloadedFile($file);
 
 
             // Broadcast the list update event
@@ -67,7 +74,8 @@ class SendMailJob implements ShouldQueue
             $this->emailTransaction->error_message = $e->getMessage();
             $this->emailTransaction->save();
             event(new EmailTransactionStatusUpdated($this->sender, $this->emailTransaction->toArray(), $this->page));
-            $this->deleteDownloadedFile($file);
+            if ($this->emailTransaction->method == 'mail')
+                $this->deleteDownloadedFile($file);
 
         }
     }
