@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreSendEmailTransactionRequest extends FormRequest
 {
@@ -28,6 +29,7 @@ class StoreSendEmailTransactionRequest extends FormRequest
             'invoice_id' => ['string'],
             'subject' => ['string'],
             'message' => ['string'],
+            'send_method' => ['required','string', Rule::in(['web', 'mail'])], // Updated validation rule
         ];
     }
 }
