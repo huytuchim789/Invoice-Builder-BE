@@ -6,11 +6,8 @@ use App\Http\Requests\StoreOrganizationRequest;
 use App\Http\Requests\UpdateOrganizationRequest;
 use App\Models\Organization;
 use App\Models\User;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Auth;
-use function PHPUnit\Framework\isNull;
+use Illuminate\Support\Facades\Response;
 
 class OrganizationController extends Controller
 {
@@ -55,7 +52,7 @@ class OrganizationController extends Controller
                 if ($validatedData['logo'] && empty($validatedData['logo_url'])) {
                     $organization->updateMedia($validatedData['logo'], ['upload_presets' => $this->uploadPreset]);
                 }
-                if (isNull($validatedData['logo'])) {
+                if (is_null($validatedData['logo'])) {
                     $organization->detachMedia();
                 }
             } else {
@@ -63,7 +60,7 @@ class OrganizationController extends Controller
                 if ($validatedData['logo'] && empty($validatedData['logo_url'])) {
                     $organization->attachMedia($validatedData['logo'], ['upload_presets' => $this->uploadPreset]);
                 }
-                if (isNull($validatedData['logo'])) {
+                if (is_null($validatedData['logo'])) {
                     $organization->detachMedia();
                 }
                 $user->organization()->associate($organization); // Associate the organization with the user
@@ -71,7 +68,7 @@ class OrganizationController extends Controller
             }
 
             // Return a response indicating success
-            return Response::customJson(200, array_merge($validatedData, ["logo_url" => $organization->fetchFirstMedia(), "check" => $validatedData['logo']]), ['message' => 'Organization updated successfully']);
+            return Response::customJson(200, array_merge($validatedData, ["logo_url" => $organization->fetchFirstMedia()->file_url ?? '', "check" => $validatedData['logo']]),'Organization updated successfully');
         } catch (\Exception $e) {
             // Return a response with an error message
             return Response::customJson(500, null, ['message' => $e->getMessage()]);
@@ -96,7 +93,7 @@ class OrganizationController extends Controller
             $organization = $user->organization;
 
             if (!$organization) {
-                return Response::customJson(404, null, ['message' => 'Organization not found for the specified user ID']);
+                return Response::customJson(200, null, ['message' => 'Setting Organization to your invoice']);
             }
 
             // You can access the organization properties directly or format the response as needed
@@ -112,7 +109,7 @@ class OrganizationController extends Controller
             ];
 
             // Return the organization detail as a custom JSON response
-            return Response::customJson(200, $organizationDetail, ['message' => 'Organization details retrieved successfully']);
+            return Response::customJson(200, $organizationDetail, 'Organization details retrieved successfully');
         } catch (\Exception $e) {
             // Return a response with an error message
             return Response::customJson(500, null, ['message' => $e->getMessage()]);

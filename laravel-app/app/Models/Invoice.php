@@ -12,6 +12,7 @@ class Invoice extends Model
     use HasFactory, HasUuids, MediaAlly;
 
     protected $fillable = [
+        'code',
         'issued_date',
         'created_date',
         'note',
@@ -43,5 +44,15 @@ class Invoice extends Model
     public function media()
     {
         return $this->morphMany(Media::class, 'medially');
+    }
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($invoice) {
+            $latestInvoice = static::latest('id')->first();
+            $invoiceNumber = $latestInvoice ? (int)substr($latestInvoice->code, 5) + 1 : 1;
+            $invoice->code = 'INVC-' . str_pad($invoiceNumber, 4, '0', STR_PAD_LEFT);
+        });
     }
 }

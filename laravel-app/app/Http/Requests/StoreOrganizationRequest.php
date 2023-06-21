@@ -24,7 +24,7 @@ class StoreOrganizationRequest extends FormRequest
     public function rules()
     {
         return [
-            'logo' => ['nullable','sometimes', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+            'logo' => ['nullable','sometimes','image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
             'logo_url' => ['nullable', 'string'],
             'address' => ['required', 'string'],
             'phone' => ['required', 'string'],

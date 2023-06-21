@@ -16,6 +16,7 @@ return new class extends Migration
     {
         Schema::create('invoices', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->string('code')->nullable();
             $table->date('issued_date');
             $table->date('created_date');
             $table->text('note');
