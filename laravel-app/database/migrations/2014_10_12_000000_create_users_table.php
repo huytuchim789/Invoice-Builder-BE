@@ -20,6 +20,7 @@ class CreateUsersTable extends Migration
             $table->string('avatar_url')->default('https://cdn-icons-png.flaticon.com/512/552/552721.png');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->nullable();
+            $table->uuid('organization_id')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
