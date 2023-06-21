@@ -65,4 +65,8 @@ class User extends Authenticatable implements JWTSubject
     {
         $this->notify(new SendEmail($emailTransaction));
     }
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class);
+    }
 }

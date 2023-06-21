@@ -18,7 +18,8 @@ class Invoice extends Model
         'tax',
         'sale_person',
         'sender_id',
-        'customer_id'
+        'customer_id',
+        'organization_id',
     ];
 
     public function items()
