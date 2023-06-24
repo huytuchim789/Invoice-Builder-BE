@@ -8,11 +8,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Cashier\Billable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use HasFactory, Notifiable, HasUuids;
+    use HasFactory, Notifiable, HasUuids, Billable;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -48,6 +50,7 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->getKey();
     }
+
     /**
      * Return a key value array, containing any custom claims to be added to the JWT.
      *
@@ -57,14 +60,17 @@ class User extends Authenticatable implements JWTSubject
     {
         return [];
     }
+
     public function setPasswordAttribute($value)
     {
         $this->attributes['password'] = Hash::make($value);
     }
+
     public function sendEmailNotification($emailTransaction)
     {
         $this->notify(new SendEmail($emailTransaction));
     }
+
     public function organization()
     {
         return $this->belongsTo(Organization::class);
