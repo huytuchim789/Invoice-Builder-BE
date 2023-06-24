@@ -16,6 +16,7 @@ class OrganizationController extends Controller
 
     public function __constructor()
     {
+        $this->middleware('auth:api');
         $this->uploadPreset = "ftcwbla2";
     }
 
@@ -68,7 +69,7 @@ class OrganizationController extends Controller
             }
 
             // Return a response indicating success
-            return Response::customJson(200, array_merge($validatedData, ["logo_url" => $organization->fetchFirstMedia()->file_url ?? '', "check" => $validatedData['logo']]),'Organization updated successfully');
+            return Response::customJson(200, array_merge($validatedData, ["logo_url" => $organization->fetchFirstMedia()->file_url ?? '', "check" => $validatedData['logo']]), 'Organization updated successfully');
         } catch (\Exception $e) {
             // Return a response with an error message
             return Response::customJson(500, null, ['message' => $e->getMessage()]);
