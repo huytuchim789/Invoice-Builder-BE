@@ -13,5 +13,7 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-
+Route::get('/invoices/{invoiceId}/list-pins', [InvoiceController::class, 'listPins']);
 Route::resource('/invoices', InvoiceController::class);
+Route::get('/invoices/{id}/download', [InvoiceController::class, 'downloadFile'])->name('invoices.downloadFile');
+Route::post('/invoices/pay-invoice', [InvoiceController::class, 'payInvoice'])->name('invoices.payInvoice');

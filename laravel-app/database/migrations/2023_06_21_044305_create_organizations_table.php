@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      *
@@ -12,13 +13,12 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('email_transactions', function (Blueprint $table) {
+        Schema::create('organizations', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('invoice_id');
-            $table->string('status')->default('pending');
-            $table->string("email_subject")->default("");
-            $table->text("email_message")->nullable();
-            $table->text('error_message')->nullable();
+            $table->string('name');
+            $table->string('address');
+            $table->string('phone');
+            $table->string('email');
             $table->timestamps();
         });
     }
@@ -30,6 +30,6 @@ return new class extends Migration {
      */
     public function down()
     {
-        Schema::dropIfExists('email_transactions');
+        Schema::dropIfExists('organizations');
     }
 };
