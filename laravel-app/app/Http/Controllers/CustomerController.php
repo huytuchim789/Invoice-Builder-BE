@@ -14,6 +14,7 @@ class CustomerController extends Controller
     public function __construct()
     {
         $this->middleware('auth:api');
+        $this->middleware('check.subscription.role');
     }
     public function index()
     {
