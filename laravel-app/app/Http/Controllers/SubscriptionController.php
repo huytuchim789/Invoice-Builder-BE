@@ -81,7 +81,7 @@ class SubscriptionController extends Controller
         $user = Auth::user();
         $paymentMethodType = $request->input('type');
         $paymentMethodDetails = $request->input('details');
-
+        $user->createOrGetStripeCustomer();
         try {
             $paymentMethod = PaymentMethod::create([
                 'type' => $paymentMethodType,
