@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Response;
+use Laravel\Cashier\Cashier;
 use Laravel\Cashier\Exceptions\IncompletePayment;
 use Stripe\Customer;
 use Stripe\PaymentMethod;
@@ -27,7 +29,11 @@ class SubscriptionController extends Controller
 
         $stripeCustomer = Customer::retrieve($stripeCustomerId);
         $defaultPaymentMethodId = $stripeCustomer->invoice_settings->default_payment_method;
+
         try {
+            if ($user->subscribed('default')) {
+                $user->subscription('default')->cancelNow();
+            }
 
             $user->newSubscription('default', 'price_1NMRqvLt2JAaPrAX7C2OVfyG')->create($defaultPaymentMethodId, [
                 'email' => $user->email,
@@ -39,27 +45,62 @@ class SubscriptionController extends Controller
         }
     }
 
-    public function checkCard(Request $request)
+    public function trialSubscription(Request $request)
+    {
+        $user = Auth::user();
+        $stripeCustomerId = $user->stripe_id;
+        Stripe::setApiKey(env('STRIPE_SECRET'));
+
+        $stripeCustomer = Customer::retrieve($stripeCustomerId);
+        $defaultPaymentMethodId = $stripeCustomer->invoice_settings->default_payment_method;
+
+        try {
+            if ($user->subscribed('default') && $user->subscription('default')->onTrial()) {
+                return Response::customJson(403, null, 'Already on a trial subscription');
+            }
+
+            $trialEndDate = Carbon::now()->addDays(7); // Set the trial end date to 7 days from now
+
+            $user->newSubscription('default', 'price_1NMRqvLt2JAaPrAX7C2OVfyG')
+                ->trialUntil($trialEndDate)
+                ->create($defaultPaymentMethodId, [
+                    'email' => $user->email,
+                ]);
+
+            return Response::customJson(200, $stripeCustomer, 'Trial subscription created successfully');
+        } catch (IncompletePayment $exception) {
+            return Response::customJson(500, null, 'Trial subscription failed');
+        }
+    }
+
+
+    public function checkSubcription(Request $request)
     {
         try {
             $user = Auth::user();
 
             if ($user->subscribed('default')) {
                 $subscription = $user->subscription('default');
-                $status = $subscription->stripe_status;
-                $plan = $subscription->stripe_price;
 
-                $card = $user->defaultPaymentMethod();
-                return Response::customJson(200, [
-                    'status' => $status,
-                    'plan' => $plan,
-                    'card' => $card,
-                ], 'Subscription status retrieved');
+
+                return Response::customJson(200,$subscription, null);
             }
+            return Response::customJson(200, null, 'No Subcription found');
         } catch (\Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
         }
-
+    }
+    public function checkCard(){
+        try {
+            $user = Auth::user();
+            $card = $user->defaultPaymentMethod();
+            if(!$card){
+                return Response::customJson(200, null, 'No card found');
+            }
+            return Response::customJson(200, $card, 'Card retrieved');
+        } catch (\Exception $e) {
+            return Response::customJson(500, null, $e->getMessage());
+        }
     }
 
     public function cancelSubscription(Request $request)
@@ -67,8 +108,8 @@ class SubscriptionController extends Controller
         $user = $request->user();
 
         if ($user->subscribed('default')) {
-            $user->subscription('default')->cancel();
-            return Response::customJson(200, null, 'Subscription cancelled');
+            $user->subscription('default')->cancelNow();
+            return Response::customJson(200, null, 'Cancel Subscription cancelled');
         }
 
         return Response::customJson(500, null, 'Subscription failed');
