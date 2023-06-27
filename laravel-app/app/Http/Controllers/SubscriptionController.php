@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Response;
-use Laravel\Cashier\Cashier;
 use Laravel\Cashier\Exceptions\IncompletePayment;
 use Stripe\Customer;
 use Stripe\PaymentMethod;
@@ -31,15 +30,22 @@ class SubscriptionController extends Controller
         $defaultPaymentMethodId = $stripeCustomer->invoice_settings->default_payment_method;
 
         try {
+            if ($user->subscription('default')->onTrial()) {
+                $subscription = $user->subscription('default');
+                $subscription->resume(); // Resume subscription
+                $subscription->swap('price_1NMRqvLt2JAaPrAX7C2OVfyG'); // Swap to new subscription plan
+
+                return Response::customJson(200, $subscription, 'Subscription plan updated during trial');
+            }
             if ($user->subscribed('default')) {
                 $user->subscription('default')->cancelNow();
             }
 
-            $user->newSubscription('default', 'price_1NMRqvLt2JAaPrAX7C2OVfyG')->create($defaultPaymentMethodId, [
+            $subcription = $user->newSubscription('default', 'price_1NMRqvLt2JAaPrAX7C2OVfyG')->create($defaultPaymentMethodId, [
                 'email' => $user->email,
             ]);
 
-            return Response::customJson(200, $stripeCustomer, 'Subscription successful');
+            return Response::customJson(200, $subcription, 'Subscription successful');
         } catch (IncompletePayment $exception) {
             return Response::customJson(500, null, 'Subscription failed');
         }
@@ -56,18 +62,18 @@ class SubscriptionController extends Controller
 
         try {
             if ($user->subscribed('default') && $user->subscription('default')->onTrial()) {
-                return Response::customJson(403, null, 'Already on a trial subscription');
+                return Response::customJson(403, null, 'Already on a trial or another subscription');
             }
 
             $trialEndDate = Carbon::now()->addDays(7); // Set the trial end date to 7 days from now
 
-            $user->newSubscription('default', 'price_1NMRqvLt2JAaPrAX7C2OVfyG')
+            $trialSubcription = $user->newSubscription('default', 'price_1NMRqvLt2JAaPrAX7C2OVfyG')
                 ->trialUntil($trialEndDate)
                 ->create($defaultPaymentMethodId, [
                     'email' => $user->email,
                 ]);
 
-            return Response::customJson(200, $stripeCustomer, 'Trial subscription created successfully');
+            return Response::customJson(200, $trialSubcription, 'Trial subscription created successfully');
         } catch (IncompletePayment $exception) {
             return Response::customJson(500, null, 'Trial subscription failed');
         }
@@ -83,21 +89,23 @@ class SubscriptionController extends Controller
                 $subscription = $user->subscription('default');
 
 
-                return Response::customJson(200,$subscription, null);
+                return Response::customJson(200, $subscription, null);
             }
-            return Response::customJson(200, null, 'No Subcription found');
+            return Response::customJson(200, ["data" => null], 'No Subcription found');
         } catch (\Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
         }
     }
-    public function checkCard(){
+
+    public function checkCard()
+    {
         try {
             $user = Auth::user();
             $card = $user->defaultPaymentMethod();
-            if(!$card){
+            if (!$card) {
                 return Response::customJson(200, null, 'No card found');
             }
-            return Response::customJson(200, $card, 'Card retrieved');
+            return Response::customJson(200, null, 'Card retrieved');
         } catch (\Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
         }
@@ -105,14 +113,22 @@ class SubscriptionController extends Controller
 
     public function cancelSubscription(Request $request)
     {
-        $user = $request->user();
+        try {
+            $user = $request->user();
 
-        if ($user->subscribed('default')) {
-            $user->subscription('default')->cancelNow();
-            return Response::customJson(200, null, 'Cancel Subscription cancelled');
+            if ($user->subscribed('default')) {
+                $user->subscription('default')->cancelNow();
+                return Response::customJson(200, null, 'Cancel Subscription cancelled');
+            }
+            if ($user->onTrial('default')) {
+                $user->subscription('default')->endTrial();
+                return Response::customJson(200, null, 'Cancel Subscription Trial cancelled');
+
+            }
+        } catch (\Exception $e) {
+            return Response::customJson(500, $user->subscribed('default'), $e->getMessage());
+
         }
-
-        return Response::customJson(500, null, 'Subscription failed');
     }
 
     public function createPaymentMethod(Request $request)
