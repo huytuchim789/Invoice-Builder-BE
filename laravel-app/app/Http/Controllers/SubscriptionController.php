@@ -39,7 +39,7 @@ class SubscriptionController extends Controller
         }
     }
 
-    public function checkSubscription(Request $request)
+    public function checkCard(Request $request)
     {
         try {
             $user = Auth::user();
