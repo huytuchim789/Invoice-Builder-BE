@@ -24,20 +24,26 @@ class SubscriptionController extends Controller
     {
         $user = Auth::user();
         $stripeCustomerId = $user->stripe_id;
+        $card = $user->defaultPaymentMethod();
+        if (!$card) {
+            return Response::customJson(200, null, 'Add card to subcribe');
+        }
         Stripe::setApiKey(env('STRIPE_SECRET'));
 
         $stripeCustomer = Customer::retrieve($stripeCustomerId);
         $defaultPaymentMethodId = $stripeCustomer->invoice_settings->default_payment_method;
 
         try {
-            if ($user->subscription('default')->onTrial()) {
+            if ($user->subscription('default')->onTrial() && !$user->subscription('default')->canceled()) {
                 $subscription = $user->subscription('default');
-                $subscription->resume(); // Resume subscription
-                $subscription->swap('price_1NMRqvLt2JAaPrAX7C2OVfyG'); // Swap to new subscription plan
-
+                $subscription->swap('price_1NMRqvLt2JAaPrAX7C2OVfyG');
+                $subscription->update([
+                    'stripe_status' => 'active',
+                    'trial_ends_at' => null,
+                ]);
                 return Response::customJson(200, $subscription, 'Subscription plan updated during trial');
             }
-            if ($user->subscribed('default')) {
+            if ($user->subscribed('default') && !$user->subscription('default')->canceled()) {
                 $user->subscription('default')->cancelNow();
             }
 
@@ -56,16 +62,24 @@ class SubscriptionController extends Controller
         $user = Auth::user();
         $stripeCustomerId = $user->stripe_id;
         Stripe::setApiKey(env('STRIPE_SECRET'));
-
+        $card = $user->defaultPaymentMethod();
+        if (!$card) {
+            return Response::customJson(200, null, 'Add card to trial');
+        }
         $stripeCustomer = Customer::retrieve($stripeCustomerId);
         $defaultPaymentMethodId = $stripeCustomer->invoice_settings->default_payment_method;
 
         try {
-            if ($user->subscribed('default') && $user->subscription('default')->onTrial()) {
-                return Response::customJson(403, null, 'Already on a trial or another subscription');
+            if ($user->subscription('default')) {
+                if (!$user->subscription('default')->canceled()) {
+                    return Response::customJson(403, null, 'Already on another subscription');
+                }
+                $pastTrials = $user->subscriptions()->whereNotNull('trial_ends_at')->count();
+                if ($pastTrials > 0) {
+                    return Response::customJson(403, null, 'Already used a trial before');
+                }
             }
-
-            $trialEndDate = Carbon::now()->addDays(7); // Set the trial end date to 7 days from now
+            $trialEndDate = Carbon::now()->addDays(30); // Set the trial end date to 7 days from now
 
             $trialSubcription = $user->newSubscription('default', 'price_1NMRqvLt2JAaPrAX7C2OVfyG')
                 ->trialUntil($trialEndDate)
@@ -82,16 +96,19 @@ class SubscriptionController extends Controller
 
     public function checkSubcription(Request $request)
     {
+
         try {
             $user = Auth::user();
-
+            $card = $user->defaultPaymentMethod();
+            if (!$card) {
+                return Response::customJson(200, null, 'Add card to use');
+            }
             if ($user->subscribed('default')) {
                 $subscription = $user->subscription('default');
-
-
                 return Response::customJson(200, $subscription, null);
             }
-            return Response::customJson(200, ["data" => null], 'No Subcription found');
+            $subscription = $user->subscription('default');
+            return Response::customJson(200, $subscription, 'Subcription retrieved');
         } catch (\Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
         }
@@ -105,7 +122,7 @@ class SubscriptionController extends Controller
             if (!$card) {
                 return Response::customJson(200, null, 'No card found');
             }
-            return Response::customJson(200, null, 'Card retrieved');
+            return Response::customJson(200, $card, 'Card retrieved');
         } catch (\Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
         }
@@ -116,15 +133,15 @@ class SubscriptionController extends Controller
         try {
             $user = $request->user();
 
-            if ($user->subscribed('default')) {
+            if ($user->subscribed('default') && !$user->subscription('default')->canceled()) {
                 $user->subscription('default')->cancelNow();
-                return Response::customJson(200, null, 'Cancel Subscription cancelled');
+                return Response::customJson(200, $user->subscription('default'), 'Cancel Subscription cancelled');
             }
-            if ($user->onTrial('default')) {
+            if ($user->onTrial('default') && !$user->subscription('default')->canceled()) {
                 $user->subscription('default')->endTrial();
                 return Response::customJson(200, null, 'Cancel Subscription Trial cancelled');
-
             }
+            return Response::customJson(404, null, 'No subscription found or has been canceled');
         } catch (\Exception $e) {
             return Response::customJson(500, $user->subscribed('default'), $e->getMessage());
 
@@ -169,7 +186,17 @@ class SubscriptionController extends Controller
             // Detach the payment method
             $paymentMethod = PaymentMethod::retrieve($defaultPaymentMethodId);
             $paymentMethod->detach();
-
+            $user->pm_type = null;
+            $user->stripe_id = null;
+            $user->pm_last_four = null;
+            $user->trial_ends_at = null;
+            $user->save();
+            if ($user->subscribed('default') && !$user->subscription('default')->canceled()) {
+                $user->subscription('default')->cancelNow();
+            }
+            if ($user->onTrial('default') && !$user->subscription('default')->canceled()) {
+                $user->subscription('default')->endTrial();
+            }
             return response()->json(['message' => 'Payment method detached successfully']);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
