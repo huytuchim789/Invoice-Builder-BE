@@ -13,9 +13,13 @@ use App\Models\Item;
 use App\Models\Pin;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
+use Stripe\Customer;
+use Stripe\Stripe;
 
 class InvoiceController extends Controller
 {
@@ -31,6 +35,7 @@ class InvoiceController extends Controller
     public function __construct()
     {
         $this->middleware('auth:api');
+        $this->middleware('check.subscription.role')->except(['downloadFile', 'listPins']);
         $this->uploadPreset = Config::get('cloudinary.upload_preset');
     }
 
@@ -312,6 +317,46 @@ class InvoiceController extends Controller
         $pngUrl = pathinfo($pdfUrl, PATHINFO_DIRNAME) . '/' . pathinfo($pdfUrl, PATHINFO_FILENAME) . '.png';
 
         return $pngUrl;
+    }
+
+    public function payInvoice(Request $request)
+    {
+        $user = Auth::user();
+        $stripeCustomerId = $user->stripe_id;
+        Stripe::setApiKey(env('STRIPE_SECRET'));
+
+        $stripeCustomer = Customer::retrieve($stripeCustomerId);
+        $defaultPaymentMethodId = $stripeCustomer->invoice_settings->default_payment_method;
+        $invoiceIds = $request->input('invoice_ids');
+        $invoices = Invoice::whereIn('id', $invoiceIds)->where('is_paid', false)->get();
+        // Calculate the total amount to charge based on the 'total' field of each invoice
+        $totalAmount = $invoices->sum('total');
+        if($totalAmount == 0) {
+            return Response::customJson(200, null, "No Invoice to pay");
+        }
+        if(empty($defaultPaymentMethodId)) {
+            return Response::customJson(500, null, "No payment method found");
+        }
+        // Charge the user's payment method
+        $stripeCharge = $user->charge($totalAmount * 100, $defaultPaymentMethodId, [
+            'currency' => 'usd',
+            'description' => 'Invoice payment',
+            'metadata' => [
+                'invoice_ids' => implode(",", $invoiceIds),
+            ],
+        ]);
+
+        if ($stripeCharge->status === 'succeeded') {
+            // Update the 'is_paid' field for each invoice in the database
+            foreach ($invoices as $invoice) {
+                $invoice->is_paid = true;
+                $invoice->save();
+            }
+
+            return Response::customJson(200, $stripeCharge, "Invoice payment successful");
+        } else {
+            return Response::customJson(500, null, "Invoice payment failed");
+        }
     }
 
 }

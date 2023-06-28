@@ -1,8 +1,7 @@
 <?php
 
-use App\Http\Controllers\EmailTransactionController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -14,9 +13,12 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::group(['prefix'=>'billing'], function(){
-    Route::post('/subscribe', [\App\Http\Controllers\SubscriptionController::class,'subscribe']);
-    Route::post('/cancel-subscription', [\App\Http\Controllers\SubscriptionController::class,'cancelSubscription']);
-    Route::post('/create-payment-method', [\App\Http\Controllers\SubscriptionController::class,'createPaymentMethod']);
-Route::get('/check-subscription', [\App\Http\Controllers\SubscriptionController::class,'checkSubscription']);
+Route::group(['prefix' => 'billing'], function () {
+    Route::get('/check-subscription', [\App\Http\Controllers\SubscriptionController::class, 'checkSubcription']);
+    Route::get('/check-card', [\App\Http\Controllers\SubscriptionController::class, 'checkCard']);
+    Route::post('/subscribe', [\App\Http\Controllers\SubscriptionController::class, 'subscribe']);
+    Route::post('/cancel-subscription', [\App\Http\Controllers\SubscriptionController::class, 'cancelSubscription']);
+    Route::post('/create-payment-method', [\App\Http\Controllers\SubscriptionController::class, 'createPaymentMethod']);
+    Route::post('/detach-payment', [\App\Http\Controllers\SubscriptionController::class, 'detachPaymentMethod']);
+    Route::post('/trial-plan', [\App\Http\Controllers\SubscriptionController::class, 'trialSubscription']);
 });

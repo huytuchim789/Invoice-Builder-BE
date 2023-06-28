@@ -3,7 +3,6 @@
 namespace App\Providers;
 
 use Illuminate\Support\Facades\Response;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -27,15 +26,8 @@ class AppServiceProvider extends ServiceProvider
     {
         Response::macro('customJson', function ($status, $data = null, $message = null) {
             $response = [];
-
-            if ($data !== null) {
-                $response['data'] = $data;
-            }
-
-            if ($message !== null) {
-                $response['message'] = $message;
-            }
-
+            $response['data'] = $data;
+            $response['message'] = $message;
             return response()->json($response, $status);
         });
     }
