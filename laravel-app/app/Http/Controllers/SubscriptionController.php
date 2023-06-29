@@ -50,7 +50,8 @@ class SubscriptionController extends Controller
             $subcription = $user->newSubscription('default', 'price_1NMRqvLt2JAaPrAX7C2OVfyG')->create($defaultPaymentMethodId, [
                 'email' => $user->email,
             ]);
-
+            $user->role = 'user';
+            $user->save();
             return Response::customJson(200, $subcription, 'Subscription successful');
         } catch (IncompletePayment $exception) {
             return Response::customJson(500, null, 'Subscription failed');
@@ -86,7 +87,8 @@ class SubscriptionController extends Controller
                 ->create($defaultPaymentMethodId, [
                     'email' => $user->email,
                 ]);
-
+            $user->role = 'user';
+            $user->save();
             return Response::customJson(200, $trialSubcription, 'Trial subscription created successfully');
         } catch (IncompletePayment $exception) {
             return Response::customJson(500, null, 'Trial subscription failed');
