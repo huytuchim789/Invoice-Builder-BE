@@ -34,6 +34,7 @@ class SubscriptionController extends Controller
         $defaultPaymentMethodId = $stripeCustomer->invoice_settings->default_payment_method;
 
         try {
+          if($user->subscription('default')){
             if ($user->subscription('default')->onTrial() && !$user->subscription('default')->canceled()) {
                 $subscription = $user->subscription('default');
                 $subscription->swap('price_1NMRqvLt2JAaPrAX7C2OVfyG');
@@ -43,6 +44,7 @@ class SubscriptionController extends Controller
                 ]);
                 return Response::customJson(200, $subscription, 'Subscription plan updated during trial');
             }
+          }
             if ($user->subscribed('default') && !$user->subscription('default')->canceled()) {
                 $user->subscription('default')->cancelNow();
             }
