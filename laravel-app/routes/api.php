@@ -36,6 +36,7 @@ Route::group([
     Route::name('comments')->group(base_path('routes/comment/comment.php'));
     Route::name('organizations')->group(base_path('routes/organization/organization.php'));
     Route::name('billing')->group(base_path('routes/billing/billing.php'));
+    Route::name('messengers')->group(base_path('routes/messenger/messenger.php'));
 });
 
 Route::post('send-email', [InvoiceController::class, 'sendEmail']);
