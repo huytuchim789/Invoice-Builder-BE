@@ -19,7 +19,7 @@ class EmailTransactionController extends Controller
     {
         try {
             $user = auth()->user();
-            $page = $request->query('page') + 1 ?? 1;
+            $page = $request->query('page')  ?? 1;
             $limit = $request->query('limit')  ?? 10;
             $status = $request->query('status');
             $startDate = $request->query('start_date');

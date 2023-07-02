@@ -26,7 +26,7 @@ class CustomerController extends Controller
 
     public function index(Request $request)
     {
-        $page = $request->query('page') + 1 ?? 1;
+        $page = $request->query('page') ?? 1;
         $limit = $request->query('limit') ?? 10;
         $keyword = $request->query('keyword', '');
         $sortOrder = $request->query('sort_order', 'desc'); // Default sort order is descending
