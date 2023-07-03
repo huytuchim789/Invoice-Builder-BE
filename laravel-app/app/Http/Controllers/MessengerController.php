@@ -29,11 +29,11 @@ class MessengerController extends Controller
             // API request was successful
             $conversations = $response->json();
             // Process the conversations data as needed
-            return Response::customJson(200, $conversations, "Conversations retrieved successfully");
+            return Response::customJson(200, $conversations, "Conversations retrieved successfully", ['Service-name' => 'chat']);
         } else {
             // API request failed
             $errorMessage = $response->body();
-            return Response::customJson($response->status(), null, $errorMessage);
+            return Response::customJson($response->status(), null, $errorMessage, ['Service-name' => 'chat']);
         }
     }
 }

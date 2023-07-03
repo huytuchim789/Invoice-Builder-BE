@@ -19,3 +19,6 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 Broadcast::channel('sender={sender}_email-transactions_page={page}', function ($user) {
     return true;
 });
+Broadcast::channel('presence-messenger', function ($user) {
+    return true;
+});
