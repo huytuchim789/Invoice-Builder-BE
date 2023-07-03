@@ -4,12 +4,22 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Response;
 
 class MessengerController extends Controller
 {
+
+    private $appChat;
+
+    public function __construct()
+    {
+        $this->middleware('auth:api');
+        $this->appChat = env('APP_CHAT_SERVER');
+    }
+
     public function index(Request $request)
     {
-        $url = 'http://localhost:3001/api/conversations';
+        $url = $this->appChat . 'conversations';
 
         $response = Http::withHeaders([
             'Cookie' => $request->header('Cookie'), // Pass cookies from the incoming request
@@ -19,12 +29,11 @@ class MessengerController extends Controller
             // API request was successful
             $conversations = $response->json();
             // Process the conversations data as needed
-
-            return response()->json($conversations);
+            return Response::customJson(200, $conversations, "Conversations retrieved successfully");
         } else {
             // API request failed
             $errorMessage = $response->body();
-            return response()->json(['error' => $errorMessage], $response->status());
+            return Response::customJson($response->status(), null, $errorMessage);
         }
     }
 }
