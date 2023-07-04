@@ -239,9 +239,10 @@ class InvoiceController extends Controller
             $page = $request->query('page') + 1 ?? 1;
             $request->validated();
             $invoiceIdsRequest = $request->input('invoice_ids');
-            $invoiceIds=collect($invoiceIdsRequest);
+            $invoiceIds = collect($invoiceIdsRequest);
+            $message = null;
             $invoiceIds
-                ->map(function ($invoiceId) use ($sender, $request, &$emailTransactions, $page) {
+                ->map(function ($invoiceId) use ($sender, $request, &$emailTransactions, $page, &$message) {
                     $invoice = Invoice::find($invoiceId);
                     if (!$invoice) {
                         return Response::customJson(404, null, "Invoice not found");
@@ -345,10 +346,10 @@ class InvoiceController extends Controller
         $invoices = Invoice::whereIn('id', $invoiceIds)->where('is_paid', false)->get();
         // Calculate the total amount to charge based on the 'total' field of each invoice
         $totalAmount = $invoices->sum('total');
-        if($totalAmount == 0) {
+        if ($totalAmount == 0) {
             return Response::customJson(200, null, "No Invoice to pay");
         }
-        if(empty($defaultPaymentMethodId)) {
+        if (empty($defaultPaymentMethodId)) {
             return Response::customJson(500, null, "No payment method found");
         }
         // Charge the user's payment method
