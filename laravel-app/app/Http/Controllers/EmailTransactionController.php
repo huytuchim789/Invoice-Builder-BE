@@ -59,7 +59,7 @@ class EmailTransactionController extends Controller
                     $query->whereBetween('issued_date', [$startDate, $endDate]);
                 });
             }
-            $emailTransactions = $query->simplePaginate($limit, ['*'], 'page', $page);
+            $emailTransactions = $query->paginate($limit, ['*'], 'page', $page);
 
             // Perform your desired actions with the $emailTransactions
 

@@ -30,12 +30,11 @@ class SendMailJob implements ShouldQueue
      *
      * @return void
      */
-    public function __construct(EmailTransaction $emailTransaction, $emailInfo, $sender, $page)
+    public function __construct(EmailTransaction $emailTransaction, $emailInfo, $sender)
     {
         $this->sender = $sender;
         $this->emailTransaction = $emailTransaction;
         $this->emailInfo = $emailInfo;
-        $this->page = $page;
     }
 
     /**
@@ -67,13 +66,13 @@ class SendMailJob implements ShouldQueue
 
 
             // Broadcast the list update event
-            event(new EmailTransactionStatusUpdated($this->sender, $this->emailTransaction->toArray(), $this->page));
+            event(new EmailTransactionStatusUpdated($this->sender, $this->emailTransaction->toArray()));
         } catch (Exception $e) {
             // Update the email transaction status to 'failed' and save the error message
             $this->emailTransaction->status = 'failed';
             $this->emailTransaction->error_message = $e->getMessage();
             $this->emailTransaction->save();
-            event(new EmailTransactionStatusUpdated($this->sender, $this->emailTransaction->toArray(), $this->page));
+            event(new EmailTransactionStatusUpdated($this->sender, $this->emailTransaction->toArray()));
             if ($this->emailTransaction->method == 'mail')
                 $this->deleteDownloadedFile($file);
 

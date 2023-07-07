@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StoreSendEmailTransactionRequest extends FormRequest
+class StoreMultipleSendEmailTransactionRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,11 +25,8 @@ class StoreSendEmailTransactionRequest extends FormRequest
     public function rules()
     {
         return [
-
-            'invoice_id' => ['required', 'string'],
-            'subject' => ['string'],
-            'message' => ['string'],
-            'send_method' => ['required', 'string', Rule::in(['web', 'mail'])], // Updated validation rule
+            'emailtransaction_ids' => ['array'],
+            'emailtransaction_ids.*' => ['string'], // Validate each ID in the array as a string
         ];
     }
 }

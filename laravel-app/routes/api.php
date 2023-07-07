@@ -37,6 +37,8 @@ Route::group([
     Route::name('organizations')->group(base_path('routes/organization/organization.php'));
     Route::name('billing')->group(base_path('routes/billing/billing.php'));
     Route::name('messengers')->group(base_path('routes/messenger/messenger.php'));
+    Route::post('send-email', [InvoiceController::class, 'sendEmail']);
+    Route::post('send-multiple-email', [InvoiceController::class, 'sendMultipleEmail']);
+
 });
 
-Route::post('send-email', [InvoiceController::class, 'sendEmail']);

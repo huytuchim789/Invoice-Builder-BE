@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreInvoiceRequest extends FormRequest
 {
@@ -38,6 +39,9 @@ class StoreInvoiceRequest extends FormRequest
             'customer_id' => ['exists:customers,id'],
             'total' => ['numeric'],
             'file' => ['required', 'file', 'mimes:pdf'],
+            'send_method' => ['required', 'string'],
+            'send_method' => ['required', 'string', Rule::in(['mail', 'web'])],
+
         ];
     }
 }

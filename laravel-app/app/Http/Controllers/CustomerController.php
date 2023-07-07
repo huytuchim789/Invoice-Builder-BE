@@ -45,7 +45,7 @@ class CustomerController extends Controller
             })
             ->orderBy($request->query('sort_by', 'created_at'), $sortOrder); // Sort by the specified column and order
 
-        $customers = $query->simplePaginate($limit, ['*'], 'page', $page);
+        $customers = $query->paginate($limit, ['*'], 'page', $page);
 
         try {
             return Response::customJson(200, $customers, "success");

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\EmailTransactionStatusUpdated;
 use App\Http\Requests\StoreInvoiceRequest;
+use App\Http\Requests\StoreMultipleSendEmailTransactionRequest;
 use App\Http\Requests\StoreSendEmailTransactionRequest;
 use App\Http\Requests\UpdateInvoiceRequest;
 use App\Jobs\SendMailJob;
@@ -73,6 +74,7 @@ class InvoiceController extends Controller
             $emailTransaction = EmailTransaction::create([
                 'invoice_id' => $invoice->id,
                 'status' => 'draft',
+
             ]);
             // Return a response indicating success
             return Response::customJson(200, $emailTransaction, "success");
@@ -234,52 +236,94 @@ class InvoiceController extends Controller
     public function sendEmail(StoreSendEmailTransactionRequest $request)
     {
         try {
+            $emailTransaction = null;
+            $sender = auth()->user();
+            $request->validated();
+            $invoice = Invoice::find($request->invoice_id);
+            $message = [];
+            if (!$invoice) {
+                return Response::customJson(404, null, "Invoice not found");
+            }
+
+            $existingTransaction = EmailTransaction::where(['invoice_id' => $request->invoice_id, 'method' => $request->send_method])->first();
+            if ($existingTransaction) {
+                if ($existingTransaction->status == 'sent' || $existingTransaction->status == 'failed') {
+                    $emailTransaction = $existingTransaction;
+                    $emailTransaction->status = 'pending';
+                    event(new EmailTransactionStatusUpdated($sender, $emailTransaction->toArray()));
+                    $message[$emailTransaction->id] = "Resend Successfully";
+                } elseif ($existingTransaction->status == 'draft') {
+                    $emailTransaction = $existingTransaction;
+                    $emailTransaction->status = 'pending';
+                    event(new EmailTransactionStatusUpdated($sender, $emailTransaction->toArray()));
+                    $message[$emailTransaction->id] = "Send Successfully";
+                }
+            } else {
+                // Create a new email transaction
+                $emailTransaction = EmailTransaction::create([
+                    'invoice_id' => $invoice->id,
+                    'status' => 'pending',
+                    'method' => $request->send_method,
+                ]);
+                event(new EmailTransactionStatusUpdated($sender, $emailTransaction));
+                $message[$emailTransaction->id] = "Send Successfully";
+            }
+
+            $emailInfo = [
+                "subject" => $emailTransaction->subject ?? '',
+                "message" => $emailTransaction->message ?? '',
+            ];
+
+            dispatch(new SendMailJob($emailTransaction, $emailInfo, $sender));
+
+            return Response::customJson(200, null, $message);
+        } catch (Exception $e) {
+            return Response::customJson(500, null, $e->getMessage());
+        }
+    }
+
+    public function sendMultipleEmail(StoreMultipleSendEmailTransactionRequest $request)
+    {
+        try {
             $emailTransactions = new Collection();
             $sender = auth()->user();
-            $page = $request->query('page') + 1 ?? 1;
+            $emailTransactionIds = $request->input('emailtransaction_ids');
             $request->validated();
-            $invoiceIdsRequest = $request->input('invoice_ids');
-            $invoiceIds = collect($invoiceIdsRequest);
-            $message = null;
-            $invoiceIds
-                ->map(function ($invoiceId) use ($sender, $request, &$emailTransactions, $page, &$message) {
-                    $invoice = Invoice::find($invoiceId);
-                    if (!$invoice) {
-                        return Response::customJson(404, null, "Invoice not found");
+            $message = [];
+            $emailTransactionIds = collect($emailTransactionIds);
+            $emailTransactionIds
+                ->map(function ($emailTransactionId) use ($sender, $request, &$emailTransactions, &$message) {
+                    $emailTransaction = EmailTransaction::find($emailTransactionId);
+                    if (!$emailTransaction) {
+                        $message[$emailTransactionId] = "Email Transaction not found";
+                        return;
                     }
+                    if ($emailTransaction->status == 'sent' || $emailTransaction->status == 'failed') {
+                        $emailTransaction->status = 'pending';
+                        event(new EmailTransactionStatusUpdated($sender, $emailTransaction->toArray()));
+                        $message[$emailTransaction->id] = "Resend Successfully";
+                    } elseif ($emailTransaction->status == 'draft') {
+                        $emailTransaction->status = 'pending';
+                        event(new EmailTransactionStatusUpdated($sender, $emailTransaction->toArray()));
+                        $message[$emailTransaction->id] = "Send Successfully";
 
-                    $existingTransaction = EmailTransaction::where(['invoice_id' => $invoiceId, 'method' => $request->send_method])->first();
-                    if ($existingTransaction) {
-                        if ($existingTransaction->status == 'sent' || $existingTransaction->status == 'failed') {
-                            $emailTransaction = $existingTransaction;
-                            $emailTransaction->status = 'pending';
-                            event(new EmailTransactionStatusUpdated($sender, $emailTransaction->toArray(), $page));
-                            $message = "Resend Successfully";
-                        } elseif ($existingTransaction->status == 'draft') {
-                            $emailTransaction = $existingTransaction;
-                            $emailTransaction->status = 'pending';
-                            event(new EmailTransactionStatusUpdated($sender, $emailTransaction->toArray(), $page));
-                            $message = "Send Successfully";
-                        }
                     } else {
                         // Create a new email transaction
-                        $emailTransaction = EmailTransaction::create([
-                            'invoice_id' => $invoice->id,
-                            'status' => 'pending',
-                            'method' => $request->send_method,
-                        ]);
-                        event(new EmailTransactionStatusUpdated($sender, $emailTransaction, $page));
-                        $message = "Send Successfully";
+                        $emailTransaction->status = 'pending';
+                        $emailTransaction->method = $request->send_method;
+                        $emailTransaction->save();
+                        event(new EmailTransactionStatusUpdated($sender, $emailTransaction));
+                        $message[$emailTransaction->id] = "Send Successfully";
                     }
 
                     $emailTransactions->push($emailTransaction);
 
                     $emailInfo = [
-                        "subject" => $request->subject ?? '',
-                        "message" => $request->message ?? '',
+                        "subject" => $emailTransaction->subject ?? '',
+                        "message" => $emailTransaction->message ?? '',
                     ];
 
-                    dispatch(new SendMailJob($emailTransaction, $emailInfo, $sender, $page));
+                    dispatch(new SendMailJob($emailTransaction, $emailInfo, $sender));
                 });
 
             $emailTransactions->each(function ($emailTransaction) use (&$message) {
@@ -288,7 +332,7 @@ class InvoiceController extends Controller
                 }
             });
 
-            return Response::customJson(200, null, $message);
+            return Response::customJson(200, $emailTransactions->pluck('id')->toArray(), $message);
         } catch (Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
         }

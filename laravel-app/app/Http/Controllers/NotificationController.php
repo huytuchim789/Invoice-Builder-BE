@@ -34,7 +34,7 @@ class NotificationController extends Controller
                 ->notifications()
                 ->latest('updated_at') // Order by updated_at in descending order
                 ->latest('created_at') // Order by created_at in descending order
-                ->simplePaginate($limit, ['*'], 'page', $page);
+                ->paginate($limit, ['*'], 'page', $page);
 
             // Retrieve the email_transaction_id from each notification and fetch the EmailTransaction
             $notifications->getCollection()->transform(function ($notification) {
