@@ -39,8 +39,9 @@ class StoreInvoiceRequest extends FormRequest
             'customer_id' => ['exists:customers,id'],
             'total' => ['numeric'],
             'file' => ['required', 'file', 'mimes:pdf'],
-            'send_method' => ['required', 'string'],
             'send_method' => ['required', 'string', Rule::in(['mail', 'web'])],
+            'subject'=> ['string'],
+            'message'=> ['string'],
 
         ];
     }

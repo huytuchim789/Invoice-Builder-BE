@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateInvoiceRequest extends FormRequest
 {
@@ -39,6 +40,9 @@ class UpdateInvoiceRequest extends FormRequest
             'customer_id' => ['exists:customers,id'],
             'total' => ['required','numeric'],
             'file' => ['required', 'file', 'mimes:pdf'],
+            'send_method' => ['required', 'string', Rule::in(['mail', 'web'])],
+            'subject'=> ['string'],
+            'message'=> ['string'],
         ];
     }
 }

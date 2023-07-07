@@ -74,6 +74,9 @@ class InvoiceController extends Controller
             $emailTransaction = EmailTransaction::create([
                 'invoice_id' => $invoice->id,
                 'status' => 'draft',
+                'method'=>$validatedData['send_method'],
+                'email_subject'=>$validatedData['subject'],
+                'email_message'=>$validatedData['message'],
 
             ]);
             // Return a response indicating success
@@ -138,7 +141,7 @@ class InvoiceController extends Controller
     public function show($id)
     {
         try {
-            $invoice = Invoice::with(['items', 'customer'])->find($id);
+            $invoice = Invoice::with(['items', 'customer','emailTransaction'])->find($id);
             if (!$invoice)
                 return Response::customJson(404, $invoice, "Not Found");
             return Response::customJson(200, $invoice, "success");
@@ -179,6 +182,24 @@ class InvoiceController extends Controller
 
             $invoice->save();
 
+
+            $emailTransaction = $invoice->emailTransaction;
+            if ($emailTransaction) {
+                // Update existing email transaction
+                $emailTransaction->method = $validatedData['send_method'];
+                $emailTransaction->email_subject = $validatedData['subject'] ?? '';
+                $emailTransaction->email_message = $validatedData['message'] ?? '';
+                $emailTransaction->save();
+            } else {
+                // Create new email transaction
+                $emailTransaction = new EmailTransaction([
+                    'invoice_id' => $invoice->id,
+                    'method' => $validatedData['send_method'],
+                    'email_subject' => $validatedData['subject'] ?? '',
+                    'email_message' => $validatedData['message'] ?? '',
+                ]);
+                $emailTransaction->save();
+            }
             // Update or create the items
             $itemsData = [];
             foreach ($validatedData['items'] as $itemData) {
@@ -319,8 +340,8 @@ class InvoiceController extends Controller
                     $emailTransactions->push($emailTransaction);
 
                     $emailInfo = [
-                        "subject" => $emailTransaction->subject ?? '',
-                        "message" => $emailTransaction->message ?? '',
+                        "subject" => $emailTransaction->email_subject ?? '',
+                        "message" => $emailTransaction->email_message ?? '',
                     ];
 
                     dispatch(new SendMailJob($emailTransaction, $emailInfo, $sender));
