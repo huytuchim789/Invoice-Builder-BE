@@ -19,8 +19,8 @@ class EmailTransactionController extends Controller
     {
         try {
             $user = auth()->user();
-            $page = $request->query('page')  ?? 1;
-            $limit = $request->query('limit')  ?? 10;
+            $page = $request->query('page') ?? 1;
+            $limit = $request->query('limit') ?? 10;
             $status = $request->query('status');
             $startDate = $request->query('start_date');
             $endDate = $request->query('end_date');
@@ -29,12 +29,12 @@ class EmailTransactionController extends Controller
                 // Handle the scenario accordingly
             }
 
-            $query = EmailTransaction::with(['invoice.customer','invoice.media']) // Eager load the invoice relationship
-                ->whereIn('invoice_id', function ($query) use ($user) {
-                    $query->select('id')
-                        ->from('invoices')
-                        ->where('sender_id', $user->id);
-                })->orderBy('created_at', 'desc')
+            $query = EmailTransaction::with(['invoice.customer', 'invoice.media']) // Eager load the invoice relationship
+            ->whereIn('invoice_id', function ($query) use ($user) {
+                $query->select('id')
+                    ->from('invoices')
+                    ->where('sender_id', $user->id);
+            })->orderBy('created_at', 'desc')
                 ->orderBy('updated_at', 'desc');;
 
             // Retrieve the search parameters from the request
@@ -48,6 +48,8 @@ class EmailTransactionController extends Controller
                         $query->where('id', 'LIKE', "%$keyword%");
                     })->orWhereHas('invoice.customer', function ($query) use ($keyword) {
                         $query->where('email', 'LIKE', "%$keyword%");
+                    })->orWhereHas('invoice', function ($query) use ($keyword) {
+                        $query->where('code', 'LIKE', "%$keyword%");
                     });
                 });
             }
