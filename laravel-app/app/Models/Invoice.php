@@ -21,6 +21,7 @@ class Invoice extends Model
         'sender_id',
         'customer_id',
         'organization_id',
+        'is_paid',
     ];
 
     protected static function boot()
