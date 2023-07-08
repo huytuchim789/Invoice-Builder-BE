@@ -10,7 +10,7 @@ class EmailTransaction extends Model
 {
     use HasFactory, HasUuids;
 
-    protected $fillable = ['invoice_id', 'status', 'error_message', 'method'];
+    protected $fillable = ['invoice_id', 'status', 'error_message', 'method','email_subject','email_message'];
 
     public function invoice()
     {
