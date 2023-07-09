@@ -9,14 +9,19 @@ use Illuminate\Database\Eloquent\Model;
 class Item extends Model
 {
     use HasFactory, HasUuids;
-    protected $fillable=[
+
+    protected $fillable = [
         'name',
-        'quantity',
         'price',
-        'invoice_id',
-        'description',
-        'cost',
-        'hours',
+        'organization_id'
 
     ];
+
+    public function invoices()
+    {
+        return $this->belongsToMany(Invoice::class)
+            ->withPivot('id','description', 'cost', 'hours')
+            ->withTimestamps();
+    }
+
 }

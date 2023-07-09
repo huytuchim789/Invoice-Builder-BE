@@ -16,6 +16,9 @@ use Illuminate\Support\Facades\Broadcast;
 Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });
-Broadcast::channel('sender={sender}_email-transactions_page={page}', function ($user) {
+Broadcast::channel('sender={sender}_email-transactions', function ($user) {
+    return true;
+});
+Broadcast::channel('presence-messenger', function ($user) {
     return true;
 });

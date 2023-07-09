@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Imports;
+namespace App\Imports\Customer;
 
 class CustomerImportValidation extends CustomerImport
 

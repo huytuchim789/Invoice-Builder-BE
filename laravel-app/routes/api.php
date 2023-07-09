@@ -27,6 +27,7 @@ Route::group([
     'middleware' => 'api',
 ], function ($router) {
     Route::name('customers')->group(base_path('routes/customer/customer.php'));
+    Route::name('items')->group(base_path('routes/item/item.php'));
     Route::name('auth')->group(base_path('routes/auth/auth.php'));
     Route::name('google_auth')->group(base_path('routes/auth/googleAuth.php'));
     Route::name('invoices')->group(base_path('routes/invoice/invoice.php'));
@@ -36,6 +37,9 @@ Route::group([
     Route::name('comments')->group(base_path('routes/comment/comment.php'));
     Route::name('organizations')->group(base_path('routes/organization/organization.php'));
     Route::name('billing')->group(base_path('routes/billing/billing.php'));
+    Route::name('messengers')->group(base_path('routes/messenger/messenger.php'));
+    Route::post('send-email', [InvoiceController::class, 'sendEmail']);
+    Route::post('send-multiple-email', [InvoiceController::class, 'sendMultipleEmail']);
+
 });
 
-Route::post('send-email', [InvoiceController::class, 'sendEmail']);

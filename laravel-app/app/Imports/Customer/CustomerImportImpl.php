@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Imports;
+namespace App\Imports\Customer;
 
 use App\Models\Customer;
 

@@ -16,18 +16,16 @@ class EmailTransactionStatusUpdated implements ShouldBroadcast
 
     protected $emailTransaction;
     protected $sender;
-    protected $page;
 
-    public function __construct($sender, $emailTransaction, $page)
+    public function __construct($sender, $emailTransaction, )
     {
         $this->emailTransaction = $emailTransaction;
         $this->sender = $sender;
-        $this->page = $page;
     }
 
     public function broadcastOn()
     {
-        return new PrivateChannel('sender=' . $this->sender->id . '_email-transactions_' . 'page=' . $this->page);
+        return new PrivateChannel('sender=' . $this->sender->id . '_email-transactions');
     }
 
     public function broadcastAs()

@@ -21,11 +21,25 @@ class Invoice extends Model
         'sender_id',
         'customer_id',
         'organization_id',
+        'is_paid',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($invoice) {
+            $latestInvoice = static::latest('id')->first();
+            $invoiceNumber = $latestInvoice ? (int)substr($latestInvoice->code, 5) + 1 : 1;
+            $invoice->code = 'INVC-' . str_pad($invoiceNumber, 4, '0', STR_PAD_LEFT);
+        });
+    }
 
     public function items()
     {
-        return $this->hasMany(Item::class);
+        return $this->belongsToMany(Item::class, 'invoice_item')
+            ->withPivot('id', 'description', 'cost', 'hours')
+            ->withTimestamps();
     }
 
     public function customer()
@@ -37,22 +51,19 @@ class Invoice extends Model
     {
         return $this->belongsTo(User::class, 'sender_id');
     }
+
     public function pins()
     {
         return $this->hasMany(Pin::class);
     }
+
     public function media()
     {
         return $this->morphMany(Media::class, 'medially');
     }
-    protected static function boot()
-    {
-        parent::boot();
 
-        static::creating(function ($invoice) {
-            $latestInvoice = static::latest('id')->first();
-            $invoiceNumber = $latestInvoice ? (int)substr($latestInvoice->code, 5) + 1 : 1;
-            $invoice->code = 'INVC-' . str_pad($invoiceNumber, 4, '0', STR_PAD_LEFT);
-        });
+    public function emailTransaction()
+    {
+        return $this->hasOne(EmailTransaction::class);
     }
 }

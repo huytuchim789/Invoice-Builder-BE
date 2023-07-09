@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Middleware;
 
 use Closure;
@@ -9,8 +10,11 @@ class CheckSubscription
     public function handle($request, Closure $next)
     {
         $user = Auth::user();
-
-        if ($user && !$user->subscription('default')->canceled() && !$user->hasExpiredTrial('default') ) {
+        if (!$user->subscribed('default'))
+            return response()->json([
+                'message' => 'Access denied. Please subscribe to access this resource.',
+            ], 403);
+        if ($user && !$user->subscription('default')->canceled() && !$user->hasExpiredTrial('default')) {
             return $next($request);
         }
 

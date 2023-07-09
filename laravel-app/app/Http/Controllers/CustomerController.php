@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Exports\CustomerExport;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
-use App\Imports\CustomerImportImpl;
-use App\Imports\CustomerImportValidation;
+use App\Imports\Customer\CustomerImportImpl;
+use App\Imports\Customer\CustomerImportValidation;
 use App\Models\Customer;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -26,7 +26,7 @@ class CustomerController extends Controller
 
     public function index(Request $request)
     {
-        $page = $request->query('page') + 1 ?? 1;
+        $page = $request->query('page') ?? 1;
         $limit = $request->query('limit') ?? 10;
         $keyword = $request->query('keyword', '');
         $sortOrder = $request->query('sort_order', 'desc'); // Default sort order is descending
@@ -45,7 +45,7 @@ class CustomerController extends Controller
             })
             ->orderBy($request->query('sort_by', 'created_at'), $sortOrder); // Sort by the specified column and order
 
-        $customers = $query->simplePaginate($limit, ['*'], 'page', $page);
+        $customers = $query->paginate($limit, ['*'], 'page', $page);
 
         try {
             return Response::customJson(200, $customers, "success");

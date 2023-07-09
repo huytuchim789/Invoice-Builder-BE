@@ -4,22 +4,25 @@ namespace App\Http\Controllers;
 
 use App\Events\EmailTransactionStatusUpdated;
 use App\Http\Requests\StoreInvoiceRequest;
+use App\Http\Requests\StoreMultipleSendEmailTransactionRequest;
 use App\Http\Requests\StoreSendEmailTransactionRequest;
 use App\Http\Requests\UpdateInvoiceRequest;
 use App\Jobs\SendMailJob;
 use App\Models\EmailTransaction;
 use App\Models\Invoice;
-use App\Models\Item;
+use App\Models\InvoiceItem;
 use App\Models\Pin;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
 use Stripe\Customer;
 use Stripe\Stripe;
+use function PHPUnit\Framework\isNull;
 
 class InvoiceController extends Controller
 {
@@ -72,8 +75,15 @@ class InvoiceController extends Controller
             $emailTransaction = EmailTransaction::create([
                 'invoice_id' => $invoice->id,
                 'status' => 'draft',
+                'method' => $validatedData['send_method'],
+                'email_subject' => $validatedData['subject'],
+                'email_message' => $validatedData['message'],
+
             ]);
-            // Return a response indicating success
+            $invoice->load('items');
+
+            // Append the invoice to the email transaction
+            $emailTransaction->invoice = $invoice;
             return Response::customJson(200, $emailTransaction, "success");
         } catch (Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
@@ -106,11 +116,10 @@ class InvoiceController extends Controller
         foreach ($validatedData['items'] as $itemData) {
             $itemsData[] = [
                 'id' => Str::uuid()->toString(),
-                'name' => $itemData['name'],
+                'item_id' => $itemData['id'],
                 'description' => $itemData['description'],
                 'cost' => $itemData['cost'],
                 'hours' => $itemData['hours'],
-                'price' => $itemData['price'],
                 'invoice_id' => $invoice->id,
             ];
         }
@@ -122,7 +131,7 @@ class InvoiceController extends Controller
             ]);
         }
         // Insert items into the database in a single query
-        Item::insert($itemsData);
+        InvoiceItem::insert($itemsData);
         return $invoice;
     }
 
@@ -135,7 +144,7 @@ class InvoiceController extends Controller
     public function show($id)
     {
         try {
-            $invoice = Invoice::with(['items', 'customer'])->find($id);
+            $invoice = Invoice::with(['items', 'customer', 'emailTransaction'])->find($id);
             if (!$invoice)
                 return Response::customJson(404, $invoice, "Not Found");
             return Response::customJson(200, $invoice, "success");
@@ -173,29 +182,52 @@ class InvoiceController extends Controller
             $invoice->tax = $validatedData['tax'];
             $invoice->sale_person = $validatedData['sale_person'];
             $invoice->total = $validatedData['total'];
-
+            $invoice->customer_id = $validatedData['customer_id'];
             $invoice->save();
 
+
+            $emailTransaction = $invoice->emailTransaction;
+            if ($emailTransaction) {
+                // Update existing email transaction
+                $emailTransaction->method = $validatedData['send_method'];
+                $emailTransaction->email_subject = $validatedData['subject'] ?? '';
+                $emailTransaction->email_message = $validatedData['message'] ?? '';
+                $emailTransaction->save();
+            } else {
+                // Create new email transaction
+                $emailTransaction = new EmailTransaction([
+                    'invoice_id' => $invoice->id,
+                    'method' => $validatedData['send_method'],
+                    'email_subject' => $validatedData['subject'] ?? '',
+                    'email_message' => $validatedData['message'] ?? '',
+                ]);
+                $emailTransaction->save();
+            }
             // Update or create the items
             $itemsData = [];
             foreach ($validatedData['items'] as $itemData) {
                 if (isset($itemData['id'])) {
                     // Update existing item
-                    $item = Item::find($itemData['id']);
-                    $item->name = $itemData['name'];
+                    $item = InvoiceItem::findOrFail($itemData['id']);
+//                    dd(isNull($item));
+//                    if (isNull($item))
+//                        continue;
+                    if (isset($itemData['is_deleted']) && $itemData['is_deleted'] == true) {
+                        $item->delete();
+                        continue;
+                    }
+                    $item->item_id = $itemData['item_id'];
                     $item->description = $itemData['description'] ?? '';
                     $item->cost = $itemData['cost'];
                     $item->hours = $itemData['hours'];
-                    $item->price = $itemData['price'];
                     $item->save();
                 } else {
                     // Create new item
-                    $item = new Item([
-                        'name' => $itemData['name'],
+                    $item = new InvoiceItem([
+                        'item_id' => $itemData['item_id'],
                         'description' => $itemData['description'] ?? '',
                         'cost' => $itemData['cost'],
                         'hours' => $itemData['hours'],
-                        'price' => $itemData['price'],
                         'invoice_id' => $invoice->id,
                     ]);
                     $item->save();
@@ -204,7 +236,7 @@ class InvoiceController extends Controller
             }
 
             // Delete any items that were not included in the updated item data
-            $invoice->items()->whereNotIn('id', array_column($itemsData, 'id'))->delete();
+//            $invoice->items()->whereNotIn('id', array_column($itemsData, 'id'))->delete();
 
             // Update the attached file if provided
             if ($validatedData['file']) {
@@ -212,7 +244,7 @@ class InvoiceController extends Controller
                 $fileName = pathinfo($validatedData['file']->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $invoice->id . '_' . $currentTime;
                 $invoice->updateMedia($validatedData['file'], ['upload_preset' => $this->uploadPreset, 'public_id' => $fileName]);
             }
-
+            $invoice->load(['items', 'customer']);
             return Response::customJson(200, $invoice, "Invoice updated successfully.");
         } catch (Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
@@ -235,9 +267,9 @@ class InvoiceController extends Controller
         try {
             $emailTransaction = null;
             $sender = auth()->user();
-            $page = $request->query('page') + 1 ?? 1;
             $request->validated();
             $invoice = Invoice::find($request->invoice_id);
+            $message = [];
             if (!$invoice) {
                 return Response::customJson(404, null, "Invoice not found");
             }
@@ -247,13 +279,13 @@ class InvoiceController extends Controller
                 if ($existingTransaction->status == 'sent' || $existingTransaction->status == 'failed') {
                     $emailTransaction = $existingTransaction;
                     $emailTransaction->status = 'pending';
-                    event(new EmailTransactionStatusUpdated($sender, $emailTransaction->toArray(), $page));
-                    $message = "Resend Successfully";
+                    event(new EmailTransactionStatusUpdated($sender, $emailTransaction->toArray()));
+                    $message[$emailTransaction->id] = "Resend Successfully";
                 } elseif ($existingTransaction->status == 'draft') {
                     $emailTransaction = $existingTransaction;
                     $emailTransaction->status = 'pending';
-                    event(new EmailTransactionStatusUpdated($sender, $emailTransaction->toArray(), $page));
-                    $message = "Send Successfully";
+                    event(new EmailTransactionStatusUpdated($sender, $emailTransaction->toArray()));
+                    $message[$emailTransaction->id] = "Send Successfully";
                 }
             } else {
                 // Create a new email transaction
@@ -262,18 +294,68 @@ class InvoiceController extends Controller
                     'status' => 'pending',
                     'method' => $request->send_method,
                 ]);
-                event(new EmailTransactionStatusUpdated($sender, $emailTransaction, $page));
-                $message = "Send Successfully";
+                event(new EmailTransactionStatusUpdated($sender, $emailTransaction));
+                $message[$emailTransaction->id] = "Send Successfully";
             }
 
             $emailInfo = [
-                "subject" => $request->subject ?? '',
-                "message" => $request->message ?? '',
+                "subject" => $emailTransaction->subject ?? '',
+                "message" => $emailTransaction->message ?? '',
             ];
 
-            dispatch(new SendMailJob($emailTransaction, $emailInfo, $sender, $page));
+            dispatch(new SendMailJob($emailTransaction, $emailInfo, $sender));
 
             return Response::customJson(200, null, $message);
+        } catch (Exception $e) {
+            return Response::customJson(500, null, $e->getMessage());
+        }
+    }
+
+    public function sendMultipleEmail(StoreMultipleSendEmailTransactionRequest $request)
+    {
+        try {
+            $emailTransactions = new Collection();
+            $sender = auth()->user();
+            $emailTransactionIds = $request->input('emailtransaction_ids');
+            $request->validated();
+            $message = [];
+            $emailTransactionIds = collect($emailTransactionIds);
+            $emailTransactionIds
+                ->map(function ($emailTransactionId) use ($sender, $request, &$emailTransactions, &$message) {
+                    $emailTransaction = EmailTransaction::find($emailTransactionId);
+                    if (!$emailTransaction) {
+                        $message[$emailTransactionId] = "Email Transaction not found";
+                        return;
+                    }
+                    if ($emailTransaction->status == 'sent' || $emailTransaction->status == 'failed') {
+                        $emailTransaction->status = 'pending';
+                        event(new EmailTransactionStatusUpdated($sender, $emailTransaction->toArray()));
+                        $message[$emailTransaction->id] = "Resend Successfully";
+                    } elseif ($emailTransaction->status == 'draft') {
+                        $emailTransaction->status = 'pending';
+                        event(new EmailTransactionStatusUpdated($sender, $emailTransaction->toArray()));
+                        $message[$emailTransaction->id] = "Send Successfully";
+
+                    } else {
+                        // Create a new email transaction
+                        $emailTransaction->status = 'pending';
+                        $emailTransaction->method = $request->send_method;
+                        $emailTransaction->save();
+                        event(new EmailTransactionStatusUpdated($sender, $emailTransaction));
+                        $message[$emailTransaction->id] = "Send Successfully";
+                    }
+
+                    $emailTransactions->push($emailTransaction);
+
+                    $emailInfo = [
+                        "subject" => $emailTransaction->email_subject ?? '',
+                        "message" => $emailTransaction->email_message ?? '',
+                    ];
+
+                    dispatch(new SendMailJob($emailTransaction, $emailInfo, $sender));
+                });
+
+            return Response::customJson(200, $emailTransactions->pluck('id')->toArray(), $message);
         } catch (Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
         }
@@ -331,10 +413,10 @@ class InvoiceController extends Controller
         $invoices = Invoice::whereIn('id', $invoiceIds)->where('is_paid', false)->get();
         // Calculate the total amount to charge based on the 'total' field of each invoice
         $totalAmount = $invoices->sum('total');
-        if($totalAmount == 0) {
+        if ($totalAmount == 0) {
             return Response::customJson(200, null, "No Invoice to pay");
         }
-        if(empty($defaultPaymentMethodId)) {
+        if (empty($defaultPaymentMethodId)) {
             return Response::customJson(500, null, "No payment method found");
         }
         // Charge the user's payment method

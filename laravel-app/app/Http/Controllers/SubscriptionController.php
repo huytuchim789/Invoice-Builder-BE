@@ -34,17 +34,17 @@ class SubscriptionController extends Controller
         $defaultPaymentMethodId = $stripeCustomer->invoice_settings->default_payment_method;
 
         try {
-          if($user->subscription('default')){
-            if ($user->subscription('default')->onTrial() && !$user->subscription('default')->canceled()) {
-                $subscription = $user->subscription('default');
-                $subscription->swap('price_1NMRqvLt2JAaPrAX7C2OVfyG');
-                $subscription->update([
-                    'stripe_status' => 'active',
-                    'trial_ends_at' => null,
-                ]);
-                return Response::customJson(200, $subscription, 'Subscription plan updated during trial');
+            if ($user->subscription('default')) {
+                if ($user->subscription('default')->onTrial() && !$user->subscription('default')->canceled()) {
+                    $subscription = $user->subscription('default');
+                    $subscription->swap('price_1NMRqvLt2JAaPrAX7C2OVfyG');
+                    $subscription->update([
+                        'stripe_status' => 'active',
+                        'trial_ends_at' => null,
+                    ]);
+                    return Response::customJson(200, $subscription, 'Subscription plan updated during trial');
+                }
             }
-          }
             if ($user->subscribed('default') && !$user->subscription('default')->canceled()) {
                 $user->subscription('default')->cancelNow();
             }
@@ -139,10 +139,14 @@ class SubscriptionController extends Controller
 
             if ($user->subscribed('default') && !$user->subscription('default')->canceled()) {
                 $user->subscription('default')->cancelNow();
+                $user->role = 'guest';
+                $user->save();
                 return Response::customJson(200, $user->subscription('default'), 'Cancel Subscription cancelled');
             }
             if ($user->onTrial('default') && !$user->subscription('default')->canceled()) {
                 $user->subscription('default')->endTrial();
+                $user->role = 'guest';
+                $user->save();
                 return Response::customJson(200, null, 'Cancel Subscription Trial cancelled');
             }
             return Response::customJson(404, null, 'No subscription found or has been canceled');
