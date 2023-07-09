@@ -14,7 +14,7 @@ class CheckSubscription
             return response()->json([
                 'message' => 'Access denied. Please subscribe to access this resource.',
             ], 403);
-        if ($user && $user->subscription('default')->canceled() && !$user->hasExpiredTrial('default')) {
+        if ($user && !$user->subscription('default')->canceled() && !$user->hasExpiredTrial('default')) {
             return $next($request);
         }
 
