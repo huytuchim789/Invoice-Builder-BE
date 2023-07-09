@@ -6,7 +6,7 @@ use App\Exports\CustomerExport;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Imports\Customer\CustomerImportImpl;
-use App\Imports\CustomerImportValidation;
+use App\Imports\Customer\CustomerImportValidation;
 use App\Models\Customer;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
