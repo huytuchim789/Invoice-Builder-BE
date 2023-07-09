@@ -36,6 +36,7 @@ class UpdateInvoiceRequest extends FormRequest
             'items.*.description' => ['string'],
             'items.*.cost' => ['required', 'numeric'],
             'items.*.hours' => ['required', 'numeric'],
+            'items.*.is_deleted' => ['required', 'boolean'],
             'customer_id' => ['exists:customers,id'],
             'total' => ['required', 'numeric'],
             'file' => ['required', 'file', 'mimes:pdf'],

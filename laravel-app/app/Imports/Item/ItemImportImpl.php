@@ -1,17 +1,15 @@
 <?php
 
-namespace App\Imports;
-
-
+namespace App\Imports\Item;
 use App\Models\Item;
 
-class ItemImportImpl extends CustomerImport
+class ItemImportImpl extends ItemImport
 {
 
     public function model(array $row)
     {
         return Item::updateOrCreate(
-            ['nane' => $row['nane']], // Search condition
+            ['name' => $row['name']], // Search condition
             [
                 'price' => $row['price'],
                 'organization_id' => auth()->user()->organization_id

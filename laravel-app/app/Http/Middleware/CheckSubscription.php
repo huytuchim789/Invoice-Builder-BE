@@ -10,7 +10,7 @@ class CheckSubscription
     {
         $user = Auth::user();
 
-        if ($user && !$user->subscription('default')->canceled() && !$user->hasExpiredTrial('default') ) {
+        if ($user && !$user->subscribed('default')&& !$user->hasExpiredTrial('default') ) {
             return $next($request);
         }
 

@@ -11,7 +11,6 @@ use App\Jobs\SendMailJob;
 use App\Models\EmailTransaction;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
-use App\Models\Item;
 use App\Models\Pin;
 use Carbon\Carbon;
 use Exception;
@@ -20,8 +19,10 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Str;
 use Stripe\Customer;
 use Stripe\Stripe;
+use function PHPUnit\Framework\isNull;
 
 class InvoiceController extends Controller
 {
@@ -79,7 +80,10 @@ class InvoiceController extends Controller
                 'email_message' => $validatedData['message'],
 
             ]);
-            // Return a response indicating success
+            $invoice->load('items');
+
+            // Append the invoice to the email transaction
+            $emailTransaction->invoice = $invoice;
             return Response::customJson(200, $emailTransaction, "success");
         } catch (Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
@@ -111,6 +115,7 @@ class InvoiceController extends Controller
         $itemsData = [];
         foreach ($validatedData['items'] as $itemData) {
             $itemsData[] = [
+                'id' => Str::uuid()->toString(),
                 'item_id' => $itemData['id'],
                 'description' => $itemData['description'],
                 'cost' => $itemData['cost'],
@@ -127,7 +132,6 @@ class InvoiceController extends Controller
         }
         // Insert items into the database in a single query
         InvoiceItem::insert($itemsData);
-
         return $invoice;
     }
 
@@ -204,7 +208,14 @@ class InvoiceController extends Controller
             foreach ($validatedData['items'] as $itemData) {
                 if (isset($itemData['id'])) {
                     // Update existing item
-                    $item = InvoiceItem::find($itemData['id']);
+                    $item = InvoiceItem::findOrFail($itemData['id']);
+//                    dd(isNull($item));
+//                    if (isNull($item))
+//                        continue;
+                    if (isset($itemData['is_deleted']) && $itemData['is_deleted'] == true) {
+                        $item->delete();
+                        continue;
+                    }
                     $item->item_id = $itemData['item_id'];
                     $item->description = $itemData['description'] ?? '';
                     $item->cost = $itemData['cost'];
@@ -225,7 +236,7 @@ class InvoiceController extends Controller
             }
 
             // Delete any items that were not included in the updated item data
-            $invoice->items()->whereNotIn('id', array_column($itemsData, 'id'))->delete();
+//            $invoice->items()->whereNotIn('id', array_column($itemsData, 'id'))->delete();
 
             // Update the attached file if provided
             if ($validatedData['file']) {
@@ -233,7 +244,7 @@ class InvoiceController extends Controller
                 $fileName = pathinfo($validatedData['file']->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $invoice->id . '_' . $currentTime;
                 $invoice->updateMedia($validatedData['file'], ['upload_preset' => $this->uploadPreset, 'public_id' => $fileName]);
             }
-
+            $invoice->load(['items', 'customer']);
             return Response::customJson(200, $invoice, "Invoice updated successfully.");
         } catch (Exception $e) {
             return Response::customJson(500, null, $e->getMessage());

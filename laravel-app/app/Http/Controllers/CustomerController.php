@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Exports\CustomerExport;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
-use App\Imports\ItemImportImpl;
+use App\Imports\Customer\CustomerImportImpl;
 use App\Imports\CustomerImportValidation;
 use App\Models\Customer;
 use Carbon\Carbon;
@@ -198,7 +198,7 @@ class CustomerController extends Controller
             $csvPath = $request->file('csv_file')->getRealPath();
 
 
-            $import = new ItemImportImpl();
+            $import = new CustomerImportImpl();
             $import->import($csvPath);
             if ($import->failures()->isNotEmpty()) {
                 return Response::customJson(400, null, $import->failures());

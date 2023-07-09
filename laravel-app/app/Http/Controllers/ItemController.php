@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Exports\ItemExport;
 use App\Http\Requests\StoreItemRequest;
-use App\Imports\ItemImportImpl;
-use App\Imports\ItemImportValidation;
+use App\Imports\Item\ItemImportImpl;
+use App\Imports\Item\ItemImportValidation;
 use App\Models\Item;
 use Carbon\Carbon;
 use Illuminate\Http\Request;

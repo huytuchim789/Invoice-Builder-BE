@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Imports;
+namespace App\Imports\Item;
 
 use App\Models\Customer;
 use Maatwebsite\Excel\Concerns\Importable;
@@ -35,7 +35,7 @@ abstract class ItemImport implements ToModel, WithHeadingRow, WithValidation, Sk
     {
         return [
             'name' => 'required|string|max:255',
-            'price' => 'required|int',
+            'price' => 'required|numeric',
         ];
     }
 

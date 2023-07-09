@@ -13,13 +13,14 @@ class Item extends Model
     protected $fillable = [
         'name',
         'price',
+        'organization_id'
 
     ];
 
     public function invoices()
     {
         return $this->belongsToMany(Invoice::class)
-            ->withPivot('description', 'cost', 'hours')
+            ->withPivot('id','description', 'cost', 'hours')
             ->withTimestamps();
     }
 
