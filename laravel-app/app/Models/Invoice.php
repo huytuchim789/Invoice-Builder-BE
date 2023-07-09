@@ -37,7 +37,9 @@ class Invoice extends Model
 
     public function items()
     {
-        return $this->hasMany(Item::class);
+        return $this->belongsToMany(Item::class, 'invoice_item')
+            ->withPivot('description', 'cost', 'hours')
+            ->withTimestamps();
     }
 
     public function customer()

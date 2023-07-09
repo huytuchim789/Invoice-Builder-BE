@@ -32,17 +32,16 @@ class UpdateInvoiceRequest extends FormRequest
             'sale_person' => ['required', 'string'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.id' => ['string'],
-            'items.*.name' => ['required', 'string'],
+            'items.*.item_id' => ['required','string','exists:items,id'],
             'items.*.description' => ['string'],
             'items.*.cost' => ['required', 'numeric'],
             'items.*.hours' => ['required', 'numeric'],
-            'items.*.price' => ['required', 'numeric'],
             'customer_id' => ['exists:customers,id'],
-            'total' => ['required','numeric'],
+            'total' => ['required', 'numeric'],
             'file' => ['required', 'file', 'mimes:pdf'],
             'send_method' => ['required', 'string', Rule::in(['mail', 'web'])],
-            'subject'=> ['string'],
-            'message'=> ['string'],
+            'subject' => ['string'],
+            'message' => ['string'],
         ];
     }
 }

@@ -6,21 +6,16 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Item extends Model
+class InvoiceItem extends Model
 {
     use HasFactory, HasUuids;
 
+    protected $table = 'invoice_item';
     protected $fillable = [
-        'name',
-        'price',
-
+        'description',
+        'cost',
+        'hours',
+        'invoice_id',
+        'item_id'
     ];
-
-    public function invoices()
-    {
-        return $this->belongsToMany(Invoice::class)
-            ->withPivot('description', 'cost', 'hours')
-            ->withTimestamps();
-    }
-
 }

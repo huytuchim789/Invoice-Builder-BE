@@ -10,6 +10,7 @@ use App\Http\Requests\UpdateInvoiceRequest;
 use App\Jobs\SendMailJob;
 use App\Models\EmailTransaction;
 use App\Models\Invoice;
+use App\Models\InvoiceItem;
 use App\Models\Item;
 use App\Models\Pin;
 use Carbon\Carbon;
@@ -19,7 +20,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Response;
-use Illuminate\Support\Str;
 use Stripe\Customer;
 use Stripe\Stripe;
 
@@ -74,9 +74,9 @@ class InvoiceController extends Controller
             $emailTransaction = EmailTransaction::create([
                 'invoice_id' => $invoice->id,
                 'status' => 'draft',
-                'method'=>$validatedData['send_method'],
-                'email_subject'=>$validatedData['subject'],
-                'email_message'=>$validatedData['message'],
+                'method' => $validatedData['send_method'],
+                'email_subject' => $validatedData['subject'],
+                'email_message' => $validatedData['message'],
 
             ]);
             // Return a response indicating success
@@ -111,12 +111,10 @@ class InvoiceController extends Controller
         $itemsData = [];
         foreach ($validatedData['items'] as $itemData) {
             $itemsData[] = [
-                'id' => Str::uuid()->toString(),
-                'name' => $itemData['name'],
+                'item_id' => $itemData['id'],
                 'description' => $itemData['description'],
                 'cost' => $itemData['cost'],
                 'hours' => $itemData['hours'],
-                'price' => $itemData['price'],
                 'invoice_id' => $invoice->id,
             ];
         }
@@ -128,7 +126,8 @@ class InvoiceController extends Controller
             ]);
         }
         // Insert items into the database in a single query
-        Item::insert($itemsData);
+        InvoiceItem::insert($itemsData);
+
         return $invoice;
     }
 
@@ -141,7 +140,7 @@ class InvoiceController extends Controller
     public function show($id)
     {
         try {
-            $invoice = Invoice::with(['items', 'customer','emailTransaction'])->find($id);
+            $invoice = Invoice::with(['items', 'customer', 'emailTransaction'])->find($id);
             if (!$invoice)
                 return Response::customJson(404, $invoice, "Not Found");
             return Response::customJson(200, $invoice, "success");
@@ -205,21 +204,19 @@ class InvoiceController extends Controller
             foreach ($validatedData['items'] as $itemData) {
                 if (isset($itemData['id'])) {
                     // Update existing item
-                    $item = Item::find($itemData['id']);
-                    $item->name = $itemData['name'];
+                    $item = InvoiceItem::find($itemData['id']);
+                    $item->item_id = $itemData['item_id'];
                     $item->description = $itemData['description'] ?? '';
                     $item->cost = $itemData['cost'];
                     $item->hours = $itemData['hours'];
-                    $item->price = $itemData['price'];
                     $item->save();
                 } else {
                     // Create new item
-                    $item = new Item([
-                        'name' => $itemData['name'],
+                    $item = new InvoiceItem([
+                        'item_id' => $itemData['item_id'],
                         'description' => $itemData['description'] ?? '',
                         'cost' => $itemData['cost'],
                         'hours' => $itemData['hours'],
-                        'price' => $itemData['price'],
                         'invoice_id' => $invoice->id,
                     ]);
                     $item->save();
@@ -346,12 +343,6 @@ class InvoiceController extends Controller
 
                     dispatch(new SendMailJob($emailTransaction, $emailInfo, $sender));
                 });
-
-            $emailTransactions->each(function ($emailTransaction) use (&$message) {
-                if (!isset($message)) {
-                    $message = "Send Successfully";
-                }
-            });
 
             return Response::customJson(200, $emailTransactions->pluck('id')->toArray(), $message);
         } catch (Exception $e) {

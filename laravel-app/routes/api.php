@@ -27,6 +27,7 @@ Route::group([
     'middleware' => 'api',
 ], function ($router) {
     Route::name('customers')->group(base_path('routes/customer/customer.php'));
+    Route::name('items')->group(base_path('routes/item/item.php'));
     Route::name('auth')->group(base_path('routes/auth/auth.php'));
     Route::name('google_auth')->group(base_path('routes/auth/googleAuth.php'));
     Route::name('invoices')->group(base_path('routes/invoice/invoice.php'));
