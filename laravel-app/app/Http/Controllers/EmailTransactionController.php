@@ -75,10 +75,9 @@ class EmailTransactionController extends Controller
                             });
                     })
                     ->whereHas('invoice', function ($query) use ($keyword) {
-                        $query->where('code', 'LIKE', "%$keyword%")
-                            ->orWhereHas('customer', function ($query) use ($keyword) {
-                                $query->where('email', 'LIKE', "%$keyword%");
-                            });
+                        $query->where('code', 'LIKE', "%$keyword%")->orWhereHas('user', function ($query) use ($keyword) {
+                            $query->where('email', 'LIKE', "%$keyword%");
+                        });
                     });
 
                 if ($status) {

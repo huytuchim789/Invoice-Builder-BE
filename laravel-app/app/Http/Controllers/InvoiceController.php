@@ -182,7 +182,7 @@ class InvoiceController extends Controller
             $invoice->tax = $validatedData['tax'];
             $invoice->sale_person = $validatedData['sale_person'];
             $invoice->total = $validatedData['total'];
-
+            $invoice->customer_id = $validatedData['customer_id'];
             $invoice->save();
 
 
