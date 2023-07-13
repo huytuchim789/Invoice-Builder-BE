@@ -23,5 +23,9 @@ class Item extends Model
             ->withPivot('id','description', 'cost', 'hours')
             ->withTimestamps();
     }
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class);
+    }
 
 }
