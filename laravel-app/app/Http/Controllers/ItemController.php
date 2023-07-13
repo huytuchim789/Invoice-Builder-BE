@@ -65,7 +65,7 @@ class ItemController extends Controller
     {
         try {
             $validatedData = $request->validated();
-            $validatedData['organization_id'] = auth()->id()??->organization_id;
+            $validatedData['organization_id'] = auth()->id()?->organization_id;
             $item = Item::create($validatedData);
             return Response::customJson(200, $item, trans('customer.create_success'));
         } catch (\Exception $e) {
