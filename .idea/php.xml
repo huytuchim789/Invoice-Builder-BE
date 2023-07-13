@@ -157,6 +157,10 @@
       <path value="$PROJECT_DIR$/laravel-app/vendor/moneyphp/money" />
       <path value="$PROJECT_DIR$/laravel-app/vendor/laravel/cashier" />
       <path value="$PROJECT_DIR$/laravel-app/vendor/symfony/polyfill-intl-icu" />
+      <path value="$PROJECT_DIR$/laravel-app/vendor/psr/cache" />
+      <path value="$PROJECT_DIR$/laravel-app/vendor/doctrine/event-manager" />
+      <path value="$PROJECT_DIR$/laravel-app/vendor/doctrine/dbal" />
+      <path value="$PROJECT_DIR$/laravel-app/vendor/doctrine/cache" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.0" />

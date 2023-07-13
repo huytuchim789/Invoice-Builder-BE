@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Route;
 //     'prefix' => '/'
 // ], function ($router) {
 // });
+Route::get('/items/all', [\App\Http\Controllers\ItemController::class, 'itemlist']);
 Route::get('/items/export', [\App\Http\Controllers\ItemController::class, 'exportCsv']);
 Route::resource('/items', \App\Http\Controllers\ItemController::class);
 Route::post('/items/validate-csv', [\App\Http\Controllers\ItemController::class, 'validateCSV']);

@@ -154,6 +154,10 @@
       <excludeFolder url="file://$MODULE_DIR$/laravel-app/vendor/moneyphp/money" />
       <excludeFolder url="file://$MODULE_DIR$/laravel-app/vendor/laravel/cashier" />
       <excludeFolder url="file://$MODULE_DIR$/laravel-app/vendor/symfony/polyfill-intl-icu" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel-app/vendor/psr/cache" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel-app/vendor/doctrine/event-manager" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel-app/vendor/doctrine/dbal" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel-app/vendor/doctrine/cache" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
