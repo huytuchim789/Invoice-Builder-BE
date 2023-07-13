@@ -30,7 +30,7 @@ class ItemController extends Controller
         $keyword = $request->query('keyword', '');
         $sortOrder = $request->query('sort_order', 'desc'); // Default sort order is descending
 
-        $query = Item::where('organization_id', auth()->id()->organiazation_id)
+        $query = Item::where('organization_id', auth()->id()?->organiazation_id)
             ->when($keyword, function ($q) use ($keyword) {
                 $q->where(function ($innerQ) use ($keyword) {
                     $innerQ->where('name', 'LIKE', "%$keyword%");
@@ -65,7 +65,7 @@ class ItemController extends Controller
     {
         try {
             $validatedData = $request->validated();
-            $validatedData['organization_id'] = auth()->id()->organization_id;
+            $validatedData['organization_id'] = auth()->id()??->organization_id;
             $item = Item::create($validatedData);
             return Response::customJson(200, $item, trans('customer.create_success'));
         } catch (\Exception $e) {
@@ -105,7 +105,7 @@ class ItemController extends Controller
             $item = Item::findOrFail($id);
 
             // Check if the customer belongs to the organization
-            if ($item->organization_id !== auth()->user()->organization_id) {
+            if ($item?->organization_id !== auth()->user()?->organization_id) {
                 return Response::customJson(403, null, "Unauthorized");
             }
 
@@ -132,7 +132,7 @@ class ItemController extends Controller
             $item = Item::findOrFail($id);
 
             // Check if the customer belongs to the organization
-            if ($item->organization_id !== auth()->user()->organization_id) {
+            if ($item?->organization_id !== auth()->user()?->organization_id) {
                 return Response::customJson(403, null, "Unauthorized");
             }
 
