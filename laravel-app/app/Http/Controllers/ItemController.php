@@ -29,8 +29,8 @@ class ItemController extends Controller
         $limit = $request->query('limit') ?? 10;
         $keyword = $request->query('keyword', '');
         $sortOrder = $request->query('sort_order', 'desc'); // Default sort order is descending
-
-        $query = Item::where('organization_id', auth()->id()->organiazation_id)
+        $query = Item::with('organization')
+            ->where('organization_id', auth()->user()?->organization_id)
             ->when($keyword, function ($q) use ($keyword) {
                 $q->where(function ($innerQ) use ($keyword) {
                     $innerQ->where('name', 'LIKE', "%$keyword%");
@@ -38,10 +38,10 @@ class ItemController extends Controller
             })
             ->orderBy($request->query('sort_by', 'created_at'), $sortOrder); // Sort by the specified column and order
 
-        $item = $query->paginate($limit, ['*'], 'page', $page);
+        $items = $query->paginate($limit, ['*'], 'page', $page);
 
         try {
-            return Response::customJson(200, $item, "success");
+            return Response::customJson(200, $items, "success");
         } catch (\Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
         }
@@ -65,7 +65,7 @@ class ItemController extends Controller
     {
         try {
             $validatedData = $request->validated();
-            $validatedData['organization_id'] = auth()->id()->organization_id;
+            $validatedData['organization_id'] = auth()->user()?->organization_id;
             $item = Item::create($validatedData);
             return Response::customJson(200, $item, trans('customer.create_success'));
         } catch (\Exception $e) {
@@ -105,7 +105,7 @@ class ItemController extends Controller
             $item = Item::findOrFail($id);
 
             // Check if the customer belongs to the organization
-            if ($item->organization_id !== auth()->user()->organization_id) {
+            if ($item?->organization_id !== auth()->user()?->organization_id) {
                 return Response::customJson(403, null, "Unauthorized");
             }
 
@@ -132,7 +132,7 @@ class ItemController extends Controller
             $item = Item::findOrFail($id);
 
             // Check if the customer belongs to the organization
-            if ($item->organization_id !== auth()->user()->organization_id) {
+            if ($item?->organization_id !== auth()->user()?->organization_id) {
                 return Response::customJson(403, null, "Unauthorized");
             }
 
@@ -168,7 +168,7 @@ class ItemController extends Controller
     #[ArrayShape(["valid" => "bool", "errors" => "\Illuminate\Support\Collection|\Maatwebsite\Excel\Validators\Failure[]", "data" => "mixed"])] private function isValidCSVFormat($csvPath): array
     {
         $valid = true;
-        $expectedHeaders = ['name','price'];
+        $expectedHeaders = ['name', 'price'];
         $reader = Excel::toArray(new ItemImportValidation(), $csvPath);
 
         $rows = $reader[0];
