@@ -42,6 +42,8 @@ class SubscriptionController extends Controller
                         'stripe_status' => 'active',
                         'trial_ends_at' => null,
                     ]);
+                    $user->role = 'user';
+                    $user->save();
                     return Response::customJson(200, $subscription, 'Subscription plan updated during trial');
                 }
             }
