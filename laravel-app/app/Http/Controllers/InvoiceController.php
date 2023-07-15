@@ -409,8 +409,8 @@ class InvoiceController extends Controller
 
         $stripeCustomer = Customer::retrieve($stripeCustomerId);
         $defaultPaymentMethodId = $stripeCustomer->invoice_settings->default_payment_method;
-        $invoiceIds = $request->input('invoice_ids');
-        $invoices = Invoice::whereIn('id', $invoiceIds)->where('is_paid', false)->get();
+        $invoiceIds = $request->input('invoice_codes');
+        $invoices = Invoice::whereIn('code', $invoiceIds)->where('is_paid', false)->get();
         // Calculate the total amount to charge based on the 'total' field of each invoice
         $totalAmount = $invoices->sum('total');
         if ($totalAmount == 0) {
@@ -438,6 +438,20 @@ class InvoiceController extends Controller
             return Response::customJson(200, $stripeCharge, "Invoice payment successful");
         } else {
             return Response::customJson(500, null, "Invoice payment failed");
+        }
+    }
+
+    public function getTotalSum(Request $request)
+    {
+        try {
+            $invoiceCodes = $request->input('invoice_codes', []);
+
+            $totalSum = Invoice::whereIn('code', $invoiceCodes)
+                ->sum('total');
+
+            return Response::customJson(200, $totalSum, "success");
+        } catch (\Exception $e) {
+            return Response::customJson(500, null, $e->getMessage());
         }
     }
 
