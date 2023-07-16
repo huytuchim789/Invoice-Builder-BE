@@ -12,7 +12,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use JetBrains\PhpStorm\ArrayShape;
 use Maatwebsite\Excel\Facades\Excel;
-use mysql_xdevapi\Exception;
 
 class ItemController extends Controller
 {
@@ -46,8 +45,15 @@ class ItemController extends Controller
             return Response::customJson(500, null, $e->getMessage());
         }
     }
-
-
+    public function itemlist()
+    {
+        try {
+            $items = Item::with('organization')->where('organization_id', auth()->user()?->organization_id)->get();
+            return Response::customJson(200, $items, "success");
+        } catch (\Exception $e) {
+            return Response::customJson(500, null, $e->getMessage());
+        }
+    }
     /**
      * Show the form for creating a new resource.
      *

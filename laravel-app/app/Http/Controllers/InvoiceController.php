@@ -45,7 +45,7 @@ class InvoiceController extends Controller
     public function index()
     {
         try {
-            $invoices = Invoice::with(['items', 'customer'])->paginate(15);
+            $invoices = Invoice::with(['items', 'customer'])->get();
             return Response::customJson(200, $invoices, "success");
         } catch (Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
@@ -76,8 +76,8 @@ class InvoiceController extends Controller
                 'invoice_id' => $invoice->id,
                 'status' => 'draft',
                 'method' => $validatedData['send_method'],
-                'email_subject' => $validatedData['subject'],
-                'email_message' => $validatedData['message'],
+                'email_subject' => $validatedData['subject'] ?? null,
+                'email_message' => $validatedData['message'] ?? null,
 
             ]);
             $invoice->load('items');
@@ -409,8 +409,8 @@ class InvoiceController extends Controller
 
         $stripeCustomer = Customer::retrieve($stripeCustomerId);
         $defaultPaymentMethodId = $stripeCustomer->invoice_settings->default_payment_method;
-        $invoiceIds = $request->input('invoice_ids');
-        $invoices = Invoice::whereIn('id', $invoiceIds)->where('is_paid', false)->get();
+        $invoiceCodes = $request->input('invoice_codes');
+        $invoices = Invoice::whereIn('code', $invoiceCodes)->where('is_paid', false)->get();
         // Calculate the total amount to charge based on the 'total' field of each invoice
         $totalAmount = $invoices->sum('total');
         if ($totalAmount == 0) {
@@ -424,7 +424,7 @@ class InvoiceController extends Controller
             'currency' => 'usd',
             'description' => 'Invoice payment',
             'metadata' => [
-                'invoice_ids' => implode(",", $invoiceIds),
+                'invoice_codes' => implode(",", $invoiceCodes),
             ],
         ]);
 
@@ -438,6 +438,23 @@ class InvoiceController extends Controller
             return Response::customJson(200, $stripeCharge, "Invoice payment successful");
         } else {
             return Response::customJson(500, null, "Invoice payment failed");
+        }
+    }
+
+    public function getTotalSum(Request $request)
+    {
+        try {
+//            $invoiceCodes = $request->get('invoice_codes', []);
+            $validatedData = $request->validate([
+                'invoice_codes' => 'required|array',
+                'invoice_codes.*' => 'exists:invoices,code',
+            ]);
+            $totalSum = Invoice::whereIn('code', $validatedData['invoice_codes'])
+                ->sum('total');
+
+            return Response::customJson(200, $totalSum, "success");
+        } catch (\Exception $e) {
+            return Response::customJson(500, null, $e->getMessage());
         }
     }
 
