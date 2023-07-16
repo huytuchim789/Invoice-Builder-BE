@@ -94,21 +94,16 @@ class DashboardController extends Controller
                 $metadataValue = $user->customer_id;
             }
 
-            Stripe::setApiKey(env('STRIPE_SECRET'));
+            $invoices = Invoice::with(['customer','user'])->where($metadataField, $metadataValue)
+                ->orderBy('created_at', 'desc')
+                ->limit(10)
+                ->get();
 
-            $payments = PaymentIntent::search([
-                'query' => 'metadata[\'sender_id\']:'.'\''.$metadataValue.'\'',
-            ]);
-
-//            $filteredPayments = $payments->data->filter(function ($payment) use ($user) {
-//                $invoiceCodes = $payment->metadata->invoice_codes ?? [];
-//                return in_array($user->invoice->code, $invoiceCodes);
-//            });
-
-            return Response::customJson(200, $payments, 'success');
+            return Response::customJson(200, $invoices, 'success');
         } catch (\Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
         }
     }
+
 
 }
