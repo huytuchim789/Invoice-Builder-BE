@@ -76,8 +76,8 @@ class InvoiceController extends Controller
                 'invoice_id' => $invoice->id,
                 'status' => 'draft',
                 'method' => $validatedData['send_method'],
-                'email_subject' => $validatedData['subject'],
-                'email_message' => $validatedData['message'],
+                'email_subject' => $validatedData['subject'] ?? null,
+                'email_message' => $validatedData['message'] ?? null,
 
             ]);
             $invoice->load('items');
