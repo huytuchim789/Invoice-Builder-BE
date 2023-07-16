@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
 use Stripe\Customer;
 use Stripe\Stripe;
+use Stripe\Transfer;
 use function PHPUnit\Framework\isNull;
 
 class InvoiceController extends Controller
@@ -433,6 +434,21 @@ class InvoiceController extends Controller
             foreach ($invoices as $invoice) {
                 $invoice->is_paid = true;
                 $invoice->save();
+            }
+            foreach ($invoices as $invoice) {
+                $customer = Customer::retrieve($invoice->customer_id);
+                $transfer = Transfer::create([
+                    'amount' => $invoice->total * 100, // Stripe accepts amounts in cents
+                    'currency' => 'usd',
+                    'source_transaction' => $stripeCharge->id,
+                    'destination' => $customer->stripe_id,
+                    'description' => 'Invoice payment transfer',
+                ]);
+
+                // Perform any additional actions with the transfer, if needed
+                // For example, save the transfer ID or update your database
+
+                // $transfer->id contains the transfer ID
             }
 
             return Response::customJson(200, $stripeCharge, "Invoice payment successful");

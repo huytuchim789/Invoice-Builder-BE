@@ -40,6 +40,6 @@ Route::group([
     Route::name('messengers')->group(base_path('routes/messenger/messenger.php'));
     Route::post('send-email', [InvoiceController::class, 'sendEmail']);
     Route::post('send-multiple-email', [InvoiceController::class, 'sendMultipleEmail']);
-
+    Route::name('dashboard')->group(base_path('routes/dashboard/dashboard.php'));
 });
 
