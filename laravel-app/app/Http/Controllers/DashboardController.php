@@ -9,8 +9,6 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
-use Stripe\PaymentIntent;
-use Stripe\Stripe;
 
 class DashboardController extends Controller
 {
@@ -44,7 +42,7 @@ class DashboardController extends Controller
                     ->sum('total');
             }
 
-            return Response::customJson(200, $totalSum, 'success');
+            return Response::customJson(200, round($totalSum, 2), 'success');
         } catch (\Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
         }
@@ -73,7 +71,7 @@ class DashboardController extends Controller
             return Response::customJson(200, [
                 'customer_count' => $customerCount,
                 'item_count' => $itemCount,
-                'total_sum' => $totalSum,
+                'total_sum' => round($totalSum, 2),
             ], 'success');
         } catch (\Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
@@ -94,7 +92,7 @@ class DashboardController extends Controller
                 $metadataValue = $user->customer_id;
             }
 
-            $invoices = Invoice::with(['customer','user'])->where($metadataField, $metadataValue)
+            $invoices = Invoice::with(['customer', 'user'])->where($metadataField, $metadataValue)
                 ->orderBy('created_at', 'desc')
                 ->limit(10)
                 ->get();

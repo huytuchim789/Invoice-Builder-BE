@@ -37,15 +37,18 @@ COPY laravel-app /var/www/html
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Install dependencies
+RUN composer install
 
 # # Generate the Laravel application key
-# RUN php artisan key:generate
+RUN php artisan key:generate
 
-# # Clear the Laravel config cache
-# RUN php artisan config:cache
+# Clear the Laravel config cache
+RUN php artisan config:cache
 
-# # Clear the route cache
-# RUN php artisan route:cache
+# Clear the route cache
+RUN php artisan route:cache
 
-# # Clear the view cache
-# RUN php artisan view:cache
+# Clear the view cache
+RUN php artisan view:cache
+
+RUN php artisan migrate
