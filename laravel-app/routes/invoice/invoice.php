@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 */
 Route::get('/invoices/{invoiceId}/list-pins', [InvoiceController::class, 'listPins']);
 Route::resource('/invoices', InvoiceController::class);
-Route::get('/invoices/{id}/download', [InvoiceController::class, 'downloadFile'])->name('invoices.downloadFile');
+Route::post('/invoices/download', [InvoiceController::class, 'downloadFile'])->name('invoices.downloadFile');
 Route::post('/invoices/pay-invoice', [InvoiceController::class, 'payInvoice'])->name('invoices.payInvoice');
 Route::post('/invoices/get-total-sum', [InvoiceController::class, 'getTotalSum'])->name('invoices.getTotalSum');
 Route::put('/invoices/{id}/mark-as-paid', [InvoiceController::class, 'maskAsPaid'])->name('invoices.markAsPaid');

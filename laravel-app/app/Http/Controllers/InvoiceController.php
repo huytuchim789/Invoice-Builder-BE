@@ -13,6 +13,8 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Pin;
 use Carbon\Carbon;
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Exception;
 use Illuminate\Http\Request;
@@ -24,8 +26,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Stripe\Customer;
 use Stripe\Stripe;
-use chillerlan\QRCode\QRCode;
-use chillerlan\QRCode\QROptions;
+use ZipArchive;
+
 class InvoiceController extends Controller
 {
     /**
@@ -92,26 +94,6 @@ class InvoiceController extends Controller
         }
     }
 
-    /**
-     * @throws Exception
-     */
-    private function generateQRCode(string $data, string $filename)
-    {
-        $options = new QROptions([
-            'version' => 5, // QR code version (adjust as needed)
-            'outputType' => QRCode::OUTPUT_IMAGE_PNG, // Output as PNG image
-            'eccLevel' => QRCode::ECC_L, // Error correction level (adjust as needed)
-        ]);
-
-        $qrCode = new QRCode($options);
-        $qrCodeImage = $qrCode->render($data);
-
-        $path = "{$filename}.png"; // Relative path to store the QR code image
-
-        // Save the QR code image to the storage/app/public directory
-        Storage::disk('temporary')->put($path, $qrCodeImage);
-        return $path; // Return the relative path to the saved QR code image
-    }
     private function saveInvoice(mixed $validatedData)
     {
         // Retrieve validated data from the request
@@ -131,9 +113,9 @@ class InvoiceController extends Controller
         $invoice->save();
         $qrCodeContents = "/preview/{$invoice->id}";
         $publicId = "qrcode_{$invoice->id}";
-        $qrImg=Storage::disk('temporary')->get($this->generateQRCode($qrCodeContents, $publicId));
+        $qrImg = Storage::disk('temporary')->get($this->generateQRCode($qrCodeContents, $publicId));
 
-        $qrCodeUrl= Cloudinary::upload($qrImg, [
+        $qrCodeUrl = Cloudinary::upload($qrImg, [
             'public_id' => $publicId,
             'upload_preset' => 'xc7j5cl5'
         ])->getSecurePath();
@@ -142,6 +124,9 @@ class InvoiceController extends Controller
         $invoice->qr_code = $qrCodeUrl;
         $invoice->save();
 
+        if (Storage::disk('temporary')->exists($publicId)) {
+            Storage::disk('temporary')->delete($publicId);
+        }
         // Prepare item data for mass insertion
         $itemsData = [];
         foreach ($validatedData['items'] as $itemData) {
@@ -164,6 +149,27 @@ class InvoiceController extends Controller
         // Insert items into the database in a single query
         InvoiceItem::insert($itemsData);
         return $invoice;
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function generateQRCode(string $data, string $filename)
+    {
+        $options = new QROptions([
+            'version' => 5, // QR code version (adjust as needed)
+            'outputType' => QRCode::OUTPUT_IMAGE_PNG, // Output as PNG image
+            'eccLevel' => QRCode::ECC_L, // Error correction level (adjust as needed)
+        ]);
+
+        $qrCode = new QRCode($options);
+        $qrCodeImage = $qrCode->render($data);
+
+        $path = "{$filename}.png"; // Relative path to store the QR code image
+
+        // Save the QR code image to the storage/app/public directory
+        Storage::disk('temporary')->put($path, $qrCodeImage);
+        return $path; // Return the relative path to the saved QR code image
     }
 
     /**
@@ -392,19 +398,43 @@ class InvoiceController extends Controller
         }
     }
 
-    public function downloadFile($invoiceId)
+    public function downloadFile(Request $request)
     {
+        $invoiceIds = $request->input('invoice_ids');
         try {
-            $invoice = Invoice::find($invoiceId);
-            if (!$invoice) {
-                return Response::customJson(404, null, "Invoice not found");
+            if (count($invoiceIds) == 1) {
+                $invoice = Invoice::find($invoiceIds[0]);
+                if (!$invoice) {
+                    return Response::customJson(404, null, "Invoice not found");
+                }
+                $file = $invoice->fetchFirstMedia();
+                if (!$file) {
+                    return Response::customJson(404, null, "File not found");
+                }
+                //            $fileUrl = $file->getFullUrl();
+                return Response::customJson(200, $file, "success");
+            } else {
+                $zip = new ZipArchive();
+                $zipFileName = 'invoices.zip';
+                $zip->open($zipFileName, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+                foreach ($invoiceIds as $invoiceId) {
+                    $invoice = Invoice::find($invoiceId);
+                    if (!$invoice) {
+                        return Response::customJson(404, null, "Invoice not found");
+                    }
+                    $file = $invoice->fetchFirstMedia();
+                    if (!$file) {
+                        return Response::customJson(404, null, "File not found");
+                    }
+                    $pdfContent = file_get_contents($file->file_url);
+
+                    // Set the appropriate MIME type based on the file extension
+                    // Add the file with the correct MIME type to the zip archive
+                    $zip->addFromString($file->file_name.'.pdf', $pdfContent);
+                }
+                $zip->close();
+                return response()->download($zipFileName)->deleteFileAfterSend(true);
             }
-            $file = $invoice->fetchFirstMedia();
-            if (!$file) {
-                return Response::customJson(404, null, "File not found");
-            }
-            //            $fileUrl = $file->getFullUrl();
-            return Response::customJson(200, $file, "success");
         } catch (Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
         }
