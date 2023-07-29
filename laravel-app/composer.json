@@ -6,6 +6,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.0.2",
+        "chillerlan/php-qrcode": "^4.3",
         "cloudinary-labs/cloudinary-laravel": "^2.0",
         "doctrine/dbal": "^3.6",
         "guzzlehttp/guzzle": "^7.2",
@@ -18,6 +19,7 @@
         "mtrajano/laravel-swagger": "^0.6.4",
         "propaganistas/laravel-phone": "^5.0",
         "pusher/pusher-php-server": "^7.2",
+        "simplesoftwareio/simple-qrcode": "^4.2",
         "tymon/jwt-auth": "^2.0"
     },
     "require-dev": {

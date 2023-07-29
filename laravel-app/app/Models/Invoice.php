@@ -12,6 +12,7 @@ class Invoice extends Model
     use HasFactory, HasUuids, MediaAlly;
 
     protected $fillable = [
+        'id', // This is the UUID
         'code',
         'issued_date',
         'created_date',
@@ -22,6 +23,8 @@ class Invoice extends Model
         'customer_id',
         'organization_id',
         'is_paid',
+        'total',
+        'qr_code',
     ];
 
     protected static function boot()

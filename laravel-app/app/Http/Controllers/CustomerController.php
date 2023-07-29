@@ -11,6 +11,7 @@ use App\Models\Customer;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Storage;
 use JetBrains\PhpStorm\ArrayShape;
 use Maatwebsite\Excel\Facades\Excel;
 use mysql_xdevapi\Exception;
@@ -156,16 +157,19 @@ class CustomerController extends Controller
         ]);
 
         try {
-            $csvPath = $request->file('csv_file')->getRealPath();
+            $csvFile = $request->file('csv_file');
+            $csvPath = $csvFile->store('temporary');
 
             $result = $this->isValidCSVFormat($csvPath);
             if ($result["valid"]) {
+                Storage::delete($csvPath);
                 return Response::customJson(200, $result, "CSV's format is valid");
             }
+            Storage::delete($csvPath);
             return Response::customJson(400, $result, "CSV is not valid");
 
         } catch (Exception $e) {
-
+            Storage::delete($csvPath);
             return Response::customJson(500, null, $e->getMessage());
         }
     }
@@ -195,14 +199,15 @@ class CustomerController extends Controller
         ]);
 
         try {
-            $csvPath = $request->file('csv_file')->getRealPath();
-
-
+            $csvFile = $request->file('csv_file');
+            $csvPath = $csvFile->store('temporary');
             $import = new CustomerImportImpl();
             $import->import($csvPath);
             if ($import->failures()->isNotEmpty()) {
+                Storage::delete($csvPath);
                 return Response::customJson(400, null, $import->failures());
             }
+            Storage::delete($csvPath);
             return Response::customJson(200, null, "Successfully imported");
         } catch (\Exception $e) {
             return Response::customJson(500, null, $e->getMessage());
