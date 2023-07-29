@@ -13,17 +13,19 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Pin;
 use Carbon\Carbon;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Stripe\Customer;
 use Stripe\Stripe;
-use Stripe\Transfer;
-
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
 class InvoiceController extends Controller
 {
     /**
@@ -93,6 +95,23 @@ class InvoiceController extends Controller
     /**
      * @throws Exception
      */
+    private function generateQRCode(string $data, string $filename)
+    {
+        $options = new QROptions([
+            'version' => 5, // QR code version (adjust as needed)
+            'outputType' => QRCode::OUTPUT_IMAGE_PNG, // Output as PNG image
+            'eccLevel' => QRCode::ECC_L, // Error correction level (adjust as needed)
+        ]);
+
+        $qrCode = new QRCode($options);
+        $qrCodeImage = $qrCode->render($data);
+
+        $path = "{$filename}.png"; // Relative path to store the QR code image
+
+        // Save the QR code image to the storage/app/public directory
+        Storage::disk('temporary')->put($path, $qrCodeImage);
+        return $path; // Return the relative path to the saved QR code image
+    }
     private function saveInvoice(mixed $validatedData)
     {
         // Retrieve validated data from the request
@@ -108,8 +127,20 @@ class InvoiceController extends Controller
         $invoice->customer_id = $validatedData['customer_id'];
         $invoice->total = $validatedData['total'];
 
-        $invoice->save();
 
+        $invoice->save();
+        $qrCodeContents = "/preview/{$invoice->id}";
+        $publicId = "qrcode_{$invoice->id}";
+        $qrImg=Storage::disk('temporary')->get($this->generateQRCode($qrCodeContents, $publicId));
+
+        $qrCodeUrl= Cloudinary::upload($qrImg, [
+            'public_id' => $publicId,
+            'upload_preset' => 'xc7j5cl5'
+        ])->getSecurePath();
+
+        // Save the QR code URL to the invoice
+        $invoice->qr_code = $qrCodeUrl;
+        $invoice->save();
 
         // Prepare item data for mass insertion
         $itemsData = [];
@@ -241,7 +272,7 @@ class InvoiceController extends Controller
             // Update the attached file if provided
             if ($validatedData['file']) {
                 $currentTime = Carbon::now()->format('Ymd_His');
-                $fileName = pathinfo($validatedData['file']->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $invoice->id . '_' . $currentTime;
+                $fileName = pathinfo($validatedData['file']->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $invoice->code . '_' . $currentTime;
                 $invoice->updateMedia($validatedData['file'], ['upload_preset' => $this->uploadPreset, 'public_id' => $fileName]);
             }
             $invoice->load(['items', 'customer']);
@@ -483,6 +514,7 @@ class InvoiceController extends Controller
 
             $invoice->is_paid = $newIsPaidStatus;
             $invoice->save();
+            $invoice->load(['items', 'customer', 'emailTransaction']);
 
             return Response::customJson(200, $invoice, "Invoice status updated successfully.");
         } catch (Exception $e) {
