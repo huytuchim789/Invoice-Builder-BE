@@ -469,4 +469,25 @@ class InvoiceController extends Controller
         }
     }
 
+    public function maskAsPaid($invoiceId)
+    {
+        try {
+            $invoice = Invoice::find($invoiceId);
+
+            if (!$invoice) {
+                return Response::customJson(404, null, "Invoice not found");
+            }
+
+            $currentIsPaidStatus = $invoice->is_paid;
+            $newIsPaidStatus = !$currentIsPaidStatus;
+
+            $invoice->is_paid = $newIsPaidStatus;
+            $invoice->save();
+
+            return Response::customJson(200, $invoice, "Invoice status updated successfully.");
+        } catch (Exception $e) {
+            return Response::customJson(500, null, $e->getMessage());
+        }
+    }
+
 }
