@@ -141,7 +141,7 @@ class InvoiceController extends Controller
         }
         if ($validatedData['file']) {
             $currentTime = Carbon::now()->format('Ymd_His');
-            $fileName = pathinfo($validatedData['file']->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $invoice->id . '_' . $currentTime;
+            $fileName = pathinfo($validatedData['file']->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $invoice->code . '_' . $currentTime;
             $invoice->attachMedia($validatedData['file'], [
                 'upload_preset' => $this->uploadPreset, 'public_id' => $fileName
             ]);
@@ -400,13 +400,22 @@ class InvoiceController extends Controller
 
     public function downloadFile(Request $request)
     {
-        $invoiceIds = $request->input('invoice_ids');
+        $emailTransactionIds = $request->input('email_transaction_ids');
         try {
-            if (count($invoiceIds) == 1) {
-                $invoice = Invoice::find($invoiceIds[0]);
-                if (!$invoice) {
-                    return Response::customJson(404, null, "Invoice not found");
-                }
+            $invoiceIds = EmailTransaction::whereIn('id', $emailTransactionIds)->distinct()->pluck('invoice_id');
+
+            if ($invoiceIds->isEmpty()) {
+                return Response::customJson(404, null, "Invoices not found");
+            }
+
+            $invoices = Invoice::whereIn('id', $invoiceIds)->get();
+            if ($invoices->isEmpty()) {
+                return Response::customJson(404, null, "Invoices not found");
+            }
+
+
+            if (count($emailTransactionIds) == 1) {
+                $invoice = $invoices->first();
                 $file = $invoice->fetchFirstMedia();
                 if (!$file) {
                     return Response::customJson(404, null, "File not found");
