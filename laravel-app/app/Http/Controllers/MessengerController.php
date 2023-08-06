@@ -22,7 +22,7 @@ class MessengerController extends Controller
         $url = $this->appChat . 'conversations';
 
         $response = Http::withHeaders([
-            'Cookie' => $request->header('Cookie'), // Pass cookies from the incoming request
+            'X-Service-Email' => auth()->user()->email, // Pass cookies from the incoming request
         ])->get($url);
 
         if ($response->successful()) {
