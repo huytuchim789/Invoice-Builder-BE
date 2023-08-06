@@ -39,8 +39,8 @@ class StoreInvoiceRequest extends FormRequest
             'total' => ['numeric'],
             'file' => ['required', 'file', 'mimes:pdf'],
             'send_method' => ['required', 'string', Rule::in(['mail', 'web'])],
-            'subject'=> ['string'],
-            'message'=> ['string'],
+            'subject' => ['string','nullable'],
+            'message' => ['string','nullable'],
 
         ];
     }

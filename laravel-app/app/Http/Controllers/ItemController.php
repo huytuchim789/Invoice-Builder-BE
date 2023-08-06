@@ -10,6 +10,7 @@ use App\Models\Item;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Storage;
 use JetBrains\PhpStorm\ArrayShape;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -45,6 +46,7 @@ class ItemController extends Controller
             return Response::customJson(500, null, $e->getMessage());
         }
     }
+
     public function itemlist()
     {
         try {
@@ -157,16 +159,19 @@ class ItemController extends Controller
         ]);
 
         try {
-            $csvPath = $request->file('csv_file')->getRealPath();
+            $csvFile = $request->file('csv_file');
+            $csvPath = $csvFile->store('temporary');
 
             $result = $this->isValidCSVFormat($csvPath);
             if ($result["valid"]) {
+                Storage::delete($csvPath);
                 return Response::customJson(200, $result, "CSV's format is valid");
             }
+            Storage::delete($csvPath);
             return Response::customJson(400, $result, "CSV is not valid");
 
         } catch (Exception $e) {
-
+            Storage::delete($csvPath);
             return Response::customJson(500, null, $e->getMessage());
         }
     }
@@ -196,16 +201,20 @@ class ItemController extends Controller
         ]);
 
         try {
-            $csvPath = $request->file('csv_file')->getRealPath();
+            $csvFile = $request->file('csv_file');
+            $csvPath = $csvFile->store('temporary');
 
 
             $import = new ItemImportImpl();
             $import->import($csvPath);
             if ($import->failures()->isNotEmpty()) {
+                Storage::delete($csvPath);
                 return Response::customJson(400, null, $import->failures());
             }
+            Storage::delete($csvPath);
             return Response::customJson(200, null, "Successfully imported");
         } catch (\Exception $e) {
+            Storage::delete($csvPath);
             return Response::customJson(500, null, $e->getMessage());
         }
     }
