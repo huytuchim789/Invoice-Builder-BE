@@ -18,7 +18,7 @@ RUN apt-get update -y && apt-get install -y \
     libpng-dev \
     libzip-dev \
     && docker-php-ext-install zip \
-    && docker-php-ext-install gettext intl pdo_mysql gd
+    && docker-php-ext-install gettext intl pdo_mysql gd bcmath
 
 RUN docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd
@@ -46,9 +46,9 @@ RUN php artisan key:generate
 RUN php artisan config:cache
 
 # Clear the route cache
-RUN php artisan route:cache
+#RUN php artisan route:cache
 
 # Clear the view cache
 RUN php artisan view:cache
 
-RUN php artisan migrate
+#RUN php artisan migrate
