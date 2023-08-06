@@ -158,7 +158,7 @@
                                                                                     <tbody>
                                                                                     <tr>
                                                                                         <td style="font-size:6px; line-height:10px; padding:0px 0px 0px 0px;" valign="top" align="center">
-                                                                                            <img class="max-width" border="0" style="display:block; color:#000000; text-decoration:none; font-family:Helvetica, arial, sans-serif; font-size:16px;" width="195" alt="" data-proportionally-constrained="true" data-responsive="false" src="http://cdn.mcauto-images-production.sendgrid.net/954c252fedab403f/b17325cc-1cf8-44be-aef7-81cc1d3f3761/195x31.png" height="31">
+                                                                                            <img class="max-width" border="0" style="display:block; color:#000000; text-decoration:none; font-family:Helvetica, arial, sans-serif; font-size:16px;" width="195" alt="" data-proportionally-constrained="true" data-responsive="false" src="https://res.cloudinary.com/ha-noi-university-of-science-and-technology/image/upload/v1691323083/MiInvoice_logo_kqhyib.png" height="40">
                                                                                         </td>
                                                                                     </tr>
                                                                                     </tbody>
@@ -177,13 +177,13 @@
                                                                             <td style="padding:0px;margin:0px;border-spacing:0;"><table class="module" role="module" data-type="text" border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout: fixed;" data-muid="6d03a36c-f346-44d8-abaa-1207de9efaa8" data-mc-module-version="2019-10-22">
                                                                                     <tbody>
                                                                                     <tr>
-                                                                                        <td style="padding:50px 30px 18px 30px; line-height:28px; text-align:inherit; background-color:#ffffff;" height="100%" valign="top" bgcolor="#ffffff" role="module-content"><div><div style="font-family: inherit; text-align: center"><span style="color: #843adc; font-size: 28px">Start your fitness journey today!</span></div><div></div></div></td>
+                                                                                        <td style="padding:50px 30px 18px 30px; line-height:28px; text-align:inherit; background-color:#ffffff;" height="100%" valign="top" bgcolor="#ffffff" role="module-content"><div><div style="font-family: inherit; text-align: center"><span style="color: #843adc; font-size: 28px">You have been sent invoice via web sending!</span></div><div></div></div></td>
                                                                                     </tr>
                                                                                     </tbody>
                                                                                 </table><table class="module" role="module" data-type="text" border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout: fixed;" data-muid="6d03a36c-f346-44d8-abaa-1207de9efaa8.2" data-mc-module-version="2019-10-22">
                                                                                     <tbody>
                                                                                     <tr>
-                                                                                        <td style="padding:0px 30px 18px 30px; line-height:28px; text-align:inherit; background-color:#ffffff;" height="100%" valign="top" bgcolor="#ffffff" role="module-content"><div><div style="font-family: inherit; text-align: center">You’ll find classes and workouts for every fitness level. Our friendly instructors are here to help you find the right programs to achieve your workout goals.</div>
+                                                                                        <td style="padding:0px 30px 18px 30px; line-height:28px; text-align:inherit; background-color:#ffffff;" height="100%" valign="top" bgcolor="#ffffff" role="module-content"><div><div style="font-family: inherit; text-align: center">Access this link below to access your invoice.</div>
                                                                                                 <div style="font-family: inherit; text-align: inherit"><br></div>
                                                                                                 <a href="{{$link}}" style="font-family: inherit; text-align: center">{{$link}}</a><div></div></div></td>
                                                                                     </tr>
@@ -196,7 +196,7 @@
                                                                                                 <tbody>
                                                                                                 <tr>
                                                                                                     <td align="center" bgcolor="#000000" class="inner-td" style="border-radius:6px; font-size:16px; text-align:center; background-color:inherit;">
-                                                                                                        <a href="" style="background-color:#000000; border:1px solid #000000; border-color:#000000; border-radius:0px; border-width:1px; color:#ffffff; display:inline-block; font-size:14px; font-weight:normal; letter-spacing:0px; line-height:normal; padding:12px 40px 12px 40px; text-align:center; text-decoration:none; border-style:solid; font-family:inherit;" target="_blank">Class Schedule</a>
+                                                                                                    
                                                                                                     </td>
                                                                                                 </tr>
                                                                                                 </tbody>
