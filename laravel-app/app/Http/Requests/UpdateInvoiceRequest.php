@@ -39,7 +39,6 @@ class UpdateInvoiceRequest extends FormRequest
             'items.*.is_deleted' => ['required', 'boolean'],
             'customer_id' => ['exists:customers,id'],
             'total' => ['required', 'numeric'],
-            'file' => ['required', 'file', 'mimes:pdf'],
             'send_method' => ['required', 'string', Rule::in(['mail', 'web'])],
             'subject' => ['string','nullable'],
             'message' => ['string','nullable'],

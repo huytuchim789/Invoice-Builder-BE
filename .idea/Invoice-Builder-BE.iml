@@ -158,6 +158,12 @@
       <excludeFolder url="file://$MODULE_DIR$/laravel-app/vendor/doctrine/event-manager" />
       <excludeFolder url="file://$MODULE_DIR$/laravel-app/vendor/doctrine/dbal" />
       <excludeFolder url="file://$MODULE_DIR$/laravel-app/vendor/doctrine/cache" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel-app/vendor/phenx/php-svg-lib" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel-app/vendor/phenx/php-font-lib" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel-app/vendor/sabberworm/php-css-parser" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel-app/vendor/barryvdh/laravel-dompdf" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel-app/vendor/masterminds/html5" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel-app/vendor/dompdf/dompdf" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

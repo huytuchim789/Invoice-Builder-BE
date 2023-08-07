@@ -12,11 +12,13 @@ use App\Models\EmailTransaction;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Pin;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Exception;
+use Illuminate\Http\File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -124,8 +126,8 @@ class InvoiceController extends Controller
         $invoice->qr_code = $qrCodeUrl;
         $invoice->save();
 
-        if (Storage::disk('temporary')->exists($publicId)) {
-            Storage::disk('temporary')->delete($publicId);
+        if (Storage::disk('temporary')->exists($publicId . '.png')) {
+            Storage::disk('temporary')->delete($publicId . '.png');
         }
         // Prepare item data for mass insertion
         $itemsData = [];
@@ -139,21 +141,21 @@ class InvoiceController extends Controller
                 'invoice_id' => $invoice->id,
             ];
         }
-        if ($validatedData['file']) {
-            $currentTime = Carbon::now()->format('Ymd_His');
-            $fileName = pathinfo($validatedData['file']->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $invoice->code . '_' . $currentTime;
-            $invoice->attachMedia($validatedData['file'], [
-                'upload_preset' => $this->uploadPreset, 'public_id' => $fileName
-            ]);
-        }
+
+
+//        if ($validatedData['file']) {
+//            $currentTime = Carbon::now()->format('Ymd_His');
+//            $fileName = pathinfo($validatedData['file']->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $invoice->code . '_' . $currentTime;
+//            $invoice->attachMedia($validatedData['file'], [
+//                'upload_preset' => $this->uploadPreset, 'public_id' => $fileName
+//            ]);
+//        }
         // Insert items into the database in a single query
         InvoiceItem::insert($itemsData);
+        $this->generatePdf($invoice,'new');
         return $invoice;
     }
 
-    /**
-     * @throws Exception
-     */
     private function generateQRCode(string $data, string $filename)
     {
         $options = new QROptions([
@@ -170,6 +172,30 @@ class InvoiceController extends Controller
         // Save the QR code image to the storage/app/public directory
         Storage::disk('temporary')->put($path, $qrCodeImage);
         return $path; // Return the relative path to the saved QR code image
+    }
+
+    /**
+     * @throws Exception
+     */
+
+    private function generatePdf($invoice, $type)
+    {
+        $currentTime = Carbon::now()->format('Ymd_His');
+
+        $pdf = PDF::loadView('pdf.pdf', ['invoiceData' => $invoice->load(['items', 'customer']), 'organization' => Auth::user()->organization]);
+        $filePath = storage_path('app' . DIRECTORY_SEPARATOR . 'temporary' . DIRECTORY_SEPARATOR . $invoice->code . '_' . $currentTime . '.pdf');
+        $file = $pdf->save($filePath);
+        if ($type == 'new') {
+            $invoice->attachMedia(new File($filePath), [
+                'upload_preset' => $this->uploadPreset, 'public_id' => $invoice->code . '_' . $currentTime
+            ]);
+        } else {
+            $invoice->updateMedia(new File($filePath), [
+                'upload_preset' => $this->uploadPreset, 'public_id' => $invoice->code . '_' . $currentTime
+            ]);
+        }
+        unlink($filePath);
+
     }
 
     /**
@@ -275,12 +301,7 @@ class InvoiceController extends Controller
             // Delete any items that were not included in the updated item data
 //            $invoice->items()->whereNotIn('id', array_column($itemsData, 'id'))->delete();
 
-            // Update the attached file if provided
-            if ($validatedData['file']) {
-                $currentTime = Carbon::now()->format('Ymd_His');
-                $fileName = pathinfo($validatedData['file']->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $invoice->code . '_' . $currentTime;
-                $invoice->updateMedia($validatedData['file'], ['upload_preset' => $this->uploadPreset, 'public_id' => $fileName]);
-            }
+            $this->generatePdf($invoice,'update');
             $invoice->load(['items', 'customer']);
             return Response::customJson(200, $invoice, "Invoice updated successfully.");
         } catch (Exception $e) {
@@ -439,7 +460,7 @@ class InvoiceController extends Controller
 
                     // Set the appropriate MIME type based on the file extension
                     // Add the file with the correct MIME type to the zip archive
-                    $zip->addFromString($file->file_name.'.pdf', $pdfContent);
+                    $zip->addFromString($file->file_name . '.pdf', $pdfContent);
                 }
                 $zip->close();
                 return response()->download($zipFileName)->deleteFileAfterSend(true);
