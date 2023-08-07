@@ -11,6 +11,7 @@ use App\Jobs\SendMailJob;
 use App\Models\EmailTransaction;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\Item;
 use App\Models\Pin;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -23,6 +24,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -105,11 +107,9 @@ class InvoiceController extends Controller
         $invoice->issued_date = $validatedData['issued_date'];
         $invoice->created_date = $validatedData['created_date'];
         $invoice->note = $validatedData['note'];
-        $invoice->tax = $validatedData['tax'];
         $invoice->sale_person = $validatedData['sale_person'];
         $invoice->sender_id = $validatedData['sender_id'];
         $invoice->customer_id = $validatedData['customer_id'];
-        $invoice->total = $validatedData['total'];
 
 
         $invoice->save();
@@ -124,35 +124,32 @@ class InvoiceController extends Controller
 
         // Save the QR code URL to the invoice
         $invoice->qr_code = $qrCodeUrl;
-        $invoice->save();
 
         if (Storage::disk('temporary')->exists($publicId . '.png')) {
             Storage::disk('temporary')->delete($publicId . '.png');
         }
         // Prepare item data for mass insertion
         $itemsData = [];
+        $total = 0;
         foreach ($validatedData['items'] as $itemData) {
             $itemsData[] = [
                 'id' => Str::uuid()->toString(),
                 'item_id' => $itemData['id'],
                 'description' => $itemData['description'],
-                'cost' => $itemData['cost'],
+                'cost' => $itemData['quantity'],
                 'hours' => $itemData['hours'],
                 'invoice_id' => $invoice->id,
             ];
+            $item = Item::find($itemData['id']);
+            $total += $itemData['quantity'] * $itemData['hours'] * $item->price;
         }
+        $invoice->tax = 8;
+        $invoice->total = round(($total * ($invoice->tax + 100)) / 100, 2);
 
+        $invoice->save();
 
-//        if ($validatedData['file']) {
-//            $currentTime = Carbon::now()->format('Ymd_His');
-//            $fileName = pathinfo($validatedData['file']->getClientOriginalName(), PATHINFO_FILENAME) . '_' . $invoice->code . '_' . $currentTime;
-//            $invoice->attachMedia($validatedData['file'], [
-//                'upload_preset' => $this->uploadPreset, 'public_id' => $fileName
-//            ]);
-//        }
-        // Insert items into the database in a single query
         InvoiceItem::insert($itemsData);
-        $this->generatePdf($invoice,'new');
+        $this->generatePdf($invoice, 'new');
         return $invoice;
     }
 
@@ -242,9 +239,8 @@ class InvoiceController extends Controller
             $invoice->issued_date = $validatedData['issued_date'];
             $invoice->created_date = $validatedData['created_date'];
             $invoice->note = $validatedData['note'];
-            $invoice->tax = $validatedData['tax'];
+            $invoice->tax = 8;
             $invoice->sale_person = $validatedData['sale_person'];
-            $invoice->total = $validatedData['total'];
             $invoice->customer_id = $validatedData['customer_id'];
             $invoice->save();
 
@@ -267,21 +263,18 @@ class InvoiceController extends Controller
                 $emailTransaction->save();
             }
             // Update or create the items
-            $itemsData = [];
+            $total = 0;
             foreach ($validatedData['items'] as $itemData) {
                 if (isset($itemData['id'])) {
                     // Update existing item
                     $item = InvoiceItem::findOrFail($itemData['id']);
-//                    dd(isNull($item));
-//                    if (isNull($item))
-//                        continue;
                     if (isset($itemData['is_deleted']) && $itemData['is_deleted'] == true) {
                         $item->delete();
                         continue;
                     }
                     $item->item_id = $itemData['item_id'];
                     $item->description = $itemData['description'] ?? '';
-                    $item->cost = $itemData['cost'];
+                    $item->cost = $itemData['quantity'];
                     $item->hours = $itemData['hours'];
                     $item->save();
                 } else {
@@ -289,19 +282,21 @@ class InvoiceController extends Controller
                     $item = new InvoiceItem([
                         'item_id' => $itemData['item_id'],
                         'description' => $itemData['description'] ?? '',
-                        'cost' => $itemData['cost'],
+                        'cost' => $itemData['quantity'],
                         'hours' => $itemData['hours'],
                         'invoice_id' => $invoice->id,
                     ]);
                     $item->save();
                 }
-                $itemsData[] = $item;
+                $total += $itemData['quantity'] * $itemData['hours'] * $item->item->price;
             }
+            $invoice->total = round(($total * ($invoice->tax + 100)) / 100, 2);
+            $invoice->save();
 
             // Delete any items that were not included in the updated item data
 //            $invoice->items()->whereNotIn('id', array_column($itemsData, 'id'))->delete();
 
-            $this->generatePdf($invoice,'update');
+            $this->generatePdf($invoice, 'update');
             $invoice->load(['items', 'customer']);
             return Response::customJson(200, $invoice, "Invoice updated successfully.");
         } catch (Exception $e) {
