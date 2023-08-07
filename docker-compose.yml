@@ -1,19 +1,19 @@
 services:
-  laravel-docker:
-    container_name: laravel-docker
-    build: .
-    command: php artisan serve --host=0.0.0.0 --port=8080
-    volumes:
-      - ./laravel-app:/var/www/html
-      - ./laravel-app/vendor:/var/www/html/vendor
-    ports:
-      - 8080:8080
-    networks:
-      - invoice-be
-    stdin_open: true
-    tty: true
-    depends_on:
-      - db
+  # laravel-docker:
+  #   container_name: laravel-docker
+  #   build: .
+  #   command: php artisan serve --host=0.0.0.0 --port=8080
+  #   volumes:
+  #     - ./laravel-app:/var/www/html
+  #     - ./laravel-app/vendor:/var/www/html/vendor
+  #   ports:
+  #     - 8080:8080
+  #   networks:
+  #     - invoice-be
+  #   stdin_open: true
+  #   tty: true
+  #   depends_on:
+  #     - db 
 
   db:
     image: mysql:latest
