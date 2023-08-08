@@ -18,4 +18,14 @@ class InvoiceItem extends Model
         'invoice_id',
         'item_id'
     ];
+
+    public function invoice()
+    {
+        return $this->belongsTo(Invoice::class, 'invoice_id');
+    }
+
+    public function item()
+    {
+        return $this->belongsTo(Item::class, 'item_id');
+    }
 }

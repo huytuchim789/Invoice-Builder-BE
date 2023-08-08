@@ -25,6 +25,7 @@ class Invoice extends Model
         'is_paid',
         'total',
         'qr_code',
+        'total'
     ];
 
     protected static function boot()

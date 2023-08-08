@@ -97,6 +97,14 @@ class EmailTransactionController extends Controller
             return Response::customJson(500, null, $e->getMessage());
         }
     }
+    public function destroy(EmailTransaction $emailTransaction){
+        try {
+            $emailTransaction->delete();
+            return Response::customJson(200, $emailTransaction, "success");
+        } catch (\Exception $e) {
+            return Response::customJson(500, null, $e->getMessage());
+        }
+    }
 //    public function getEmailTransactionsForGuestUser(Request $request)
 //    {
 //        try {
