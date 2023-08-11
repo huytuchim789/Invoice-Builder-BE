@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Comment;
 use App\Models\EmailTransaction;
 use App\Models\User;
+use App\Notifications\SendEmail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
@@ -38,18 +40,30 @@ class NotificationController extends Controller
 
             // Retrieve the email_transaction_id from each notification and fetch the EmailTransaction
             $notifications->getCollection()->transform(function ($notification) {
-                $data = $notification->data;
-                $emailTransactionId = $data['email_transaction_id'] ?? null;
-                $emailTransaction = $emailTransactionId ? EmailTransaction::with('invoice')->find($emailTransactionId) : null;
-                $data['email_transaction'] = $emailTransaction;
-                unset($data['email_transaction_id']);
+               if($notification->type==SendEmail::class){
+                   $data = $notification->data;
+                   $emailTransactionId = $data['email_transaction_id'] ?? null;
+                   $emailTransaction = $emailTransactionId ? EmailTransaction::with('invoice')->find($emailTransactionId) : null;
+                   $data['email_transaction'] = $emailTransaction;
+                   unset($data['email_transaction_id']);
 
-                $senderId = $notification->notifiable_id;
-                $sender = $senderId ? User::find($senderId) : null;
-                $data['sender'] = $sender;
+                   $senderId = $notification->notifiable_id;
+                   $sender = $senderId ? User::find($senderId) : null;
+                   $data['sender'] = $sender;
 
-                $notification->data = $data;
-                return $notification;
+                   $notification->data = $data;
+                   return $notification;
+               }
+               else{
+                   $data = $notification->data;
+                   $commentId = $data['comment_id'] ?? null;
+                   $comment = $commentId ? Comment::with('pin.invoice')->find($commentId) : null;
+                   $data['comment'] = $comment;
+                   unset($data['comment_id']);
+
+                   $notification->data = $data;
+                   return $notification;
+               }
             });
 
             return Response::customJson(200, ['notifications' => $notifications], "Success");
