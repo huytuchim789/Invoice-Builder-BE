@@ -11,7 +11,6 @@ class Comment extends Model
     use HasFactory,HasUuids;
 
     protected $fillable = [
-        'invoice_id',
         'user_id',
         'pin_id',
         'content'
@@ -23,5 +22,13 @@ class Comment extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+    public function invoice()
+    {
+        return $this->belongsTo(Invoice::class);
+    }
+    public function pin()
+    {
+        return $this->belongsTo(Pin::class);
     }
 }

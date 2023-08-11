@@ -6,10 +6,11 @@ use CloudinaryLabs\CloudinaryLaravel\MediaAlly;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Invoice extends Model
 {
-    use HasFactory, HasUuids, MediaAlly;
+    use HasFactory, HasUuids, MediaAlly,SoftDeletes;
 
     protected $fillable = [
         'id', // This is the UUID

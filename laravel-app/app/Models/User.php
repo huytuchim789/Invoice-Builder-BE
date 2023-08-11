@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\CommentNotification;
 use App\Notifications\SendEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -69,6 +70,11 @@ class User extends Authenticatable implements JWTSubject
     public function sendEmailNotification($emailTransaction)
     {
         $this->notify(new SendEmail($emailTransaction));
+    }
+
+    public function sendCommentNotification($comment,$sender)
+    {
+        $this->notify(new CommentNotification($comment,$sender));
     }
 
     public function organization()
