@@ -9,9 +9,10 @@ class CustomerImportImpl extends CustomerImport
 
     public function model(array $row)
     {
-        return Customer::updateOrCreate(
-            ['email' => $row['email']], // Search condition
+        return Customer::create(
+            // ['email' => $row['email']], // Search condition
             [
+                'email' => $row['email'],
                 'name' => $row['name'],
                 'company' => $row['company'],
                 'country' => $row['country'],
