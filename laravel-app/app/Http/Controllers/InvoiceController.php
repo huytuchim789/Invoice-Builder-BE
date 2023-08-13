@@ -30,6 +30,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Stripe\Customer;
 use Stripe\Stripe;
+use Stripe\Transfer;
 use ZipArchive;
 
 class InvoiceController extends Controller
@@ -522,7 +523,7 @@ class InvoiceController extends Controller
 //                    $transfer = Transfer::create([
 //                        'amount' => $invoice->total * 100, // Stripe accepts amounts in cents
 //                        'currency' => 'usd',
-//                        'source_transaction' => $stripeCharge->id,
+////                        'source_transaction' => $stripeCharge->id,
 //                        'destination' => $customer->id,
 //                        'description' => 'Invoice payment transfer',
 //                    ]);
