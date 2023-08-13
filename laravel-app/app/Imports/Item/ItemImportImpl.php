@@ -8,9 +8,9 @@ class ItemImportImpl extends ItemImport
 
     public function model(array $row)
     {
-        return Item::updateOrCreate(
-            ['name' => $row['name']], // Search condition
-            [
+        return Item::create(
+            // ['name' => $row['name']], // Search condition
+            [   'name' => $row['name'],
                 'price' => $row['price'],
                 'organization_id' => auth()->user()->organization_id
             ]
