@@ -72,9 +72,9 @@ class User extends Authenticatable implements JWTSubject
         $this->notify(new SendEmail($emailTransaction));
     }
 
-    public function sendCommentNotification($comment,$sender)
+    public function sendCommentNotification($comment,$sender,$invoiceId)
     {
-        $this->notify(new CommentNotification($comment,$sender));
+        $this->notify(new CommentNotification($comment,$sender,$invoiceId));
     }
 
     public function organization()
