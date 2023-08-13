@@ -102,6 +102,32 @@ class DashboardController extends Controller
             return Response::customJson(500, null, $e->getMessage());
         }
     }
+    public function getRecentlyPaidInvoices(Request $request)
+    {
+        try {
+            $user = Auth::user();
+            $role = $user->role;
+
+            if ($role === 'user') {
+                $metadataField = 'sender_id';
+                $metadataValue = $user->id;
+            } else {
+                $metadataField = 'customer_id';
+                $metadataValue = $user->customer_id;
+            }
+
+            $invoices = Invoice::with(['customer', 'user'])
+                ->where($metadataField, $metadataValue)
+                ->where('is_paid', true)
+                ->orderBy('created_at', 'desc')
+                ->limit(8)
+                ->get();
+
+            return Response::customJson(200, $invoices, 'success');
+        } catch (\Exception $e) {
+            return Response::customJson(500, null, $e->getMessage());
+        }
+    }
 
 
 }
