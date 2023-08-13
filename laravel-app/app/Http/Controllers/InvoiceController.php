@@ -47,7 +47,7 @@ class InvoiceController extends Controller
     public function __construct()
     {
         $this->middleware('auth:api');
-        $this->middleware('check.subscription.role')->except(['downloadFile', 'listPins']);
+        $this->middleware('check.subscription.role')->except(['downloadFile', 'listPins','getTotalSum','payInvoice','show']);
         $this->uploadPreset = Config::get('cloudinary.upload_preset');
     }
 

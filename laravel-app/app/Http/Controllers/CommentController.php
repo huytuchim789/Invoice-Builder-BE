@@ -70,10 +70,10 @@ class CommentController extends Controller
             ]);
             if($user=User::where('email',$comment->pin->invoice->customer->email)->first()){
                 if(auth()->user()->id==$comment->pin->invoice->user->id){
-                    $user->sendCommentNotification($comment,auth()->user());
+                    $user->sendCommentNotification($comment,auth()->user(),$comment->pin->invoice->id);
                 }
                 else{
-                    $comment->pin->invoice->user->sendCommentNotification($comment,auth()->user());
+                    $comment->pin->invoice->user->sendCommentNotification($comment,auth()->user(),$comment->pin->invoice->id);
                 }
             }
             // Retrieve the pin list with comments

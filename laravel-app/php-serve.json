@@ -1,0 +1,20 @@
+{
+  "apps": [
+    {
+      "name": "laravel-app",
+      "script": "artisan",
+      "args": ["serve", "--host=0.0.0.0", "--port=8080"],
+      "interpreter": "php"
+    },
+    {
+      "name": "laravel-queue-listener",
+      "script": "artisan",
+      "exec_mode": "fork",
+      "interpreter": "php",
+      "instances": 1,
+      "args": [
+        "queue:listen"
+      ]
+    }
+  ]
+}
