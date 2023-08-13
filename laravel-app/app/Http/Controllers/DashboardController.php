@@ -27,12 +27,14 @@ class DashboardController extends Controller
             $role = $user->role;
 
             if ($role === 'guest') {
-                $customerId = $user->customer_id;
+                $customerEmail = $user->email;
 
-                $totalSum = Invoice::where('customer_id', $customerId)
-                    ->where('is_paid', true)
-                    ->whereMonth('created_at', $currentMonth) // Filter by the current month
-                    ->sum('total');
+                $totalSum = Invoice::whereHas('customer', function ($query) use ($customerEmail) {
+                    $query->where('email', $customerEmail);
+                })
+                ->where('is_paid', true)
+                ->whereMonth('created_at', $currentMonth)
+                ->sum('total');
             } else {
                 $senderId = $user->id;
 
